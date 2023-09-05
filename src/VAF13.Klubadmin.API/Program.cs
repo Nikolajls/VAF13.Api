@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using VAF13.Klubadmin.API.Infrastructure;
 using VAF13.Klubadmin.API.Services;
 using VAF13.Klubadmin.API.Services.Interfaces;
+using VAF13.Klubadmin.Domain.Configurations;
 
 namespace VAF13.Klubadmin.API
 {
@@ -12,7 +13,7 @@ namespace VAF13.Klubadmin.API
     {
       var builder = WebApplication.CreateBuilder(args);
       var services = builder.Services;
-      ConfigureServices(services);
+      ConfigureServices(services, builder.Configuration);
 
       var app = builder.Build();
       ConfigureApp(app);
@@ -20,12 +21,14 @@ namespace VAF13.Klubadmin.API
     }
 
 
-    private static void ConfigureServices(IServiceCollection services)
+    private static void ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
     {
       services.AddControllers();
       services.AddEndpointsApiExplorer();
       services.AddSwaggerGen();
 
+      services.AddOptions();
+      services.Configure<DFUConfiguration>(configuration.GetSection("DfuConfiguration"));
       services.AddSingleton<KlubadminAuthHandler>();
       services.AddHttpClient<IKlubAdminAuthService, KlubAdminAuthService>(client =>
       {

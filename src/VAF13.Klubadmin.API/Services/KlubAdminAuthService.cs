@@ -1,42 +1,46 @@
+using Microsoft.Extensions.Options;
 using VAF13.Klubadmin.API.Services.Interfaces;
+using VAF13.Klubadmin.Domain.Configurations;
 
 namespace VAF13.Klubadmin.API.Services;
 
 public class KlubAdminAuthService : IKlubAdminAuthService
 {
-  private readonly ILogger<KlubAdminAuthService> _logger;
-  private readonly HttpClient _httpClient;
+    private readonly ILogger<KlubAdminAuthService> _logger;
+    private readonly DFUConfiguration _apiDfuConfiguraton;
+    private readonly HttpClient _httpClient;
 
-  public KlubAdminAuthService(HttpClient httpClient, ILogger<KlubAdminAuthService> logger)
-  {
-    _httpClient = httpClient;
-    _logger = logger;
-  }
-
-  public async Task<string> Authenticate()
-  {
-    var loginDict = new Dictionary<string, string>()
+    public KlubAdminAuthService(HttpClient httpClient, ILogger<KlubAdminAuthService> logger, IOptions<DFUConfiguration> apiDfuConfiguraton)
     {
-      ["loginid"] = "nikolajlundsorensen@gmail.com",
-      ["password"] = "",
-      ["action"] = "systemlogin",
-    };
-
-    var loginContentTwo = new FormUrlEncodedContent(loginDict);
-    _logger.LogInformation("getting login access");
-    var loginResponse = await _httpClient.PostAsync("klubadmin/pages/", loginContentTwo);
-    _logger.LogInformation("Got Login Access {StatusCode}", loginResponse.StatusCode);
-
-    var responseString = await loginResponse.Content.ReadAsStringAsync();
-
-    loginResponse.EnsureSuccessStatusCode();
-    var cookieValue = string.Empty;
-    var cookieSetHeader = loginResponse.Headers.Where(c => c.Key == "Set-Cookie").SelectMany(c => c.Value).FirstOrDefault(e => e.Contains("PHPSESSID"));
-    if (!string.IsNullOrEmpty(cookieSetHeader))
-    {
-      cookieValue = cookieSetHeader.Remove(cookieSetHeader.IndexOf(";")).Replace("PHPSESSID=", "");
+        _httpClient = httpClient;
+        _apiDfuConfiguraton = apiDfuConfiguraton.Value;
+        _logger = logger;
     }
 
-    return cookieValue;
-  }
+    public async Task<string> Authenticate()
+    {
+        var loginDict = new Dictionary<string, string>()
+        {
+            ["loginid"] = _apiDfuConfiguraton.Username,
+            ["password"] = _apiDfuConfiguraton.Password,
+            ["action"] = "systemlogin",
+        };
+
+        var loginContentTwo = new FormUrlEncodedContent(loginDict);
+        _logger.LogInformation("getting login access");
+        var loginResponse = await _httpClient.PostAsync("klubadmin/pages/", loginContentTwo);
+        _logger.LogInformation("Got Login Access {StatusCode}", loginResponse.StatusCode);
+
+        var responseString = await loginResponse.Content.ReadAsStringAsync();
+
+        loginResponse.EnsureSuccessStatusCode();
+        var cookieValue = string.Empty;
+        var cookieSetHeader = loginResponse.Headers.Where(c => c.Key == "Set-Cookie").SelectMany(c => c.Value).FirstOrDefault(e => e.Contains("PHPSESSID"));
+        if (!string.IsNullOrEmpty(cookieSetHeader))
+        {
+            cookieValue = cookieSetHeader.Remove(cookieSetHeader.IndexOf(";")).Replace("PHPSESSID=", "");
+        }
+
+        return cookieValue;
+    }
 }
