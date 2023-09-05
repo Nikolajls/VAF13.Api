@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VAF13.Klubadmin.API", "VAF13.Klubadmin.API\VAF13.Klubadmin.API.csproj", "{922643F8-89DE-49BF-94EE-91DC136C771B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VAF13.Klubadmin.Domain", "VAF13.Klubadmin.Domain\VAF13.Klubadmin.Domain.csproj", "{7249C45C-FDE7-416E-9F81-EB46851AB877}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VAF13.Klubadmin.UI", "VAF13.Klubadmin.UI\VAF13.Klubadmin.UI.csproj", "{8B12727F-08B0-42FC-AAD1-67F8D486A153}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{922643F8-89DE-49BF-94EE-91DC136C771B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{922643F8-89DE-49BF-94EE-91DC136C771B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{922643F8-89DE-49BF-94EE-91DC136C771B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{922643F8-89DE-49BF-94EE-91DC136C771B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F982F626-8A99-4C98-AE6F-EE2DAAEA6DED}
+	EndGlobalSection
+EndGlobal
