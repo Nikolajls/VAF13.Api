@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using VAF13.Klubadmin.Domain.DTOs;
 using VAF13.Klubadmin.Domain.Services.Skywin;
 using VAF13.Klubadmin.Domain.Services.VAFapi;
@@ -10,6 +9,7 @@ namespace VAF13.Klubadmin.UI.Winform
         private readonly IVAFApiIntegration _test;
         private readonly ISkywinMembersDialogService _skywinMembersDialogService;
         private List<PersonDetails> _lastSearched;
+
         public Form1(IVAFApiIntegration test, ISkywinMembersDialogService skywinMembersDialogService)
         {
             _test = test;
@@ -17,7 +17,7 @@ namespace VAF13.Klubadmin.UI.Winform
             InitializeComponent();
 
             dataGridView1.ColumnCount = 8;
-            dataGridView1.Name = "songsDataGridView";
+            dataGridView1.Name = "Members view";
             dataGridView1.Columns[0].Name = "First Name";
             dataGridView1.Columns[1].Name = "Last Name";
             dataGridView1.Columns[2].Name = "Club";
@@ -35,6 +35,7 @@ namespace VAF13.Klubadmin.UI.Winform
 
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.MultiSelect = false;
+            _lastSearched = Array.Empty<PersonDetails>().ToList();
         }
 
         private void dataGridViewSoftware_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -48,10 +49,11 @@ namespace VAF13.Klubadmin.UI.Winform
                 return;
             }
 
-
-            MessageBox.Show($"Blabla {dataToInsert.FirstName} {dataToInsert.LastName}");
-            _skywinMembersDialogService.InsertData(dataToInsert);
-
+            if (MessageBox.Show($@"Insert into empty members dialog {dataToInsert.FirstName} {dataToInsert.LastName}",
+                    "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                _skywinMembersDialogService.InsertData(dataToInsert);
+            }
         }
 
         private async void search_Click(object sender, EventArgs e)
@@ -64,18 +66,15 @@ namespace VAF13.Klubadmin.UI.Winform
 
             _lastSearched = searchResults;
             dataGridView1.Rows.Clear();
+
             foreach (var person in _lastSearched)
             {
-                string[] row = { person.FirstName, person.LastName, person.Club, person.Id, person.ContactRelation, person.ContactName, person.Phone, person.Gender };
-
+                object[] row = { person.FirstName, person.LastName, person.Club, person.Id, person.ContactRelation, person.ContactName, person.Phone, person.Gender };
                 dataGridView1.Rows.Add(row);
             }
-            //var names = string.Join(", ", searchResults.Select(xe => $"{xe.FirstName} {xe.LastName}"));
-            //txt_name.Text = names;
+
             progressBar1.Visible = false;
             btn_search.Visible = true;
-
         }
-
     }
 }

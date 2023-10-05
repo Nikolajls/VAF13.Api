@@ -77,6 +77,6 @@ public class SkywinMembersDialogService : ISkywinMembersDialogService
 
     private void ComboSelect(nint controlPtr, string text)
     {
-        SendMessage(controlPtr, (uint)WindowsMessages., nint.Zero, text.Trim());
+        SendMessage(controlPtr, CB_SELECTSTRING, nint.Zero, text.Trim());
     }
 }
