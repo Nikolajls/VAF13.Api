@@ -1,13 +1,13 @@
 
 using System.Net.Http.Headers;
-using VAF13.Klubadmin.API.Infrastructure;
-using VAF13.Klubadmin.API.Services;
-using VAF13.Klubadmin.API.Services.Interfaces;
 using VAF13.Klubadmin.Domain.Configurations;
+using VAF13.Klubadmin.Domain.Infrastructure;
+using VAF13.Klubadmin.Domain.Services.Klubadmin;
+using VAF13.Klubadmin.Domain.Services.Klubadmin.Interfaces;
 
 namespace VAF13.Klubadmin.API
 {
-  public class Program
+    public class Program
   {
     public static void Main(string[] args)
     {
@@ -30,6 +30,8 @@ namespace VAF13.Klubadmin.API
       services.AddOptions();
       services.Configure<DFUConfiguration>(configuration.GetSection("DfuConfiguration"));
       services.AddSingleton<KlubadminAuthHandler>();
+
+      //
       services.AddHttpClient<IKlubAdminAuthService, KlubAdminAuthService>(client =>
       {
         client.BaseAddress = new Uri("https://klubadmin.dfu.dk/");
@@ -40,7 +42,7 @@ namespace VAF13.Klubadmin.API
           UseCookies = false
         }
       );
-
+            //
       services.AddHttpClient<IKlubAdminService, KlubAdminService>(client =>
         {
           client.BaseAddress = new Uri("https://klubadmin.dfu.dk/");

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VAF13.Klubadmin.API", "VAF1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VAF13.Klubadmin.Domain", "VAF13.Klubadmin.Domain\VAF13.Klubadmin.Domain.csproj", "{7249C45C-FDE7-416E-9F81-EB46851AB877}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VAF13.Klubadmin.UI", "VAF13.Klubadmin.UI\VAF13.Klubadmin.UI.csproj", "{8B12727F-08B0-42FC-AAD1-67F8D486A153}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VAF13.Klubadmin.UI.Winform", "VAF13.Klubadmin.UI.Winform\VAF13.Klubadmin.UI.Winform.csproj", "{49BFDF46-D1D8-4CDE-8E0D-B7B08A7866AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +23,10 @@ Global
 		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7249C45C-FDE7-416E-9F81-EB46851AB877}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B12727F-08B0-42FC-AAD1-67F8D486A153}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{49BFDF46-D1D8-4CDE-8E0D-B7B08A7866AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49BFDF46-D1D8-4CDE-8E0D-B7B08A7866AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49BFDF46-D1D8-4CDE-8E0D-B7B08A7866AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49BFDF46-D1D8-4CDE-8E0D-B7B08A7866AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
