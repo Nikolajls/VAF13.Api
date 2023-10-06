@@ -1,5 +1,7 @@
 
 using System.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
+using VAF13.Klubadmin.API.Infrastucture;
 using VAF13.Klubadmin.Domain.Configurations;
 using VAF13.Klubadmin.Domain.Infrastructure;
 using VAF13.Klubadmin.Domain.Services.Klubadmin;
@@ -25,12 +27,38 @@ namespace VAF13.Klubadmin.API
         {
             services.AddControllers();
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(x =>
+            {
+                x.AddSecurityDefinition("X-API-KEY", new OpenApiSecurityScheme
+                {
+                    Name = "X-API-KEY",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "ApiKeyScheme",
+                    In = ParameterLocation.Header,
+                    Description = "ApiKey must appear in header"
+                });
+                x.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "X-API-KEY"
+                            },
+                            In = ParameterLocation.Header
+                        },
+                        new string[]{}
+                    }
+                });
+            });
 
             services.AddOptions();
-            services.Configure<DFUConfiguration>(configuration.GetSection("DfuConfiguration"));
+            services.Configure<ApiConfiguration>(configuration.GetSection(ApiConfiguration.ConfigurationSectionName));
+            services.Configure<DFUConfiguration>(configuration.GetSection(DFUConfiguration.ConfigurationSectionName));
 
-            //
+            //Add authentication
             services.AddHttpClient<IKlubAdminAuthService, KlubAdminAuthService>(client =>
             {
                 client.BaseAddress = new Uri("https://klubadmin.dfu.dk/");
@@ -68,6 +96,8 @@ namespace VAF13.Klubadmin.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             //app.UseHttpsRedirection();
 
