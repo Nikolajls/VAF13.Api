@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using VAF13.Klubadmin.Domain.DTOs;
 using VAF13.Klubadmin.Domain.Helpers;
 
@@ -7,28 +7,33 @@ namespace VAF13.Klubadmin.Domain.Services.Skywin;
 
 public class SkywinMembersDialogService : ISkywinMembersDialogService
 {
-    private const int WM_SETTEXT = 0x000C;
-    private const int CB_SELECTSTRING = 0x014d;
+    private readonly IWindowsApiService _windowsApiService;
+    private readonly ILogger<SkywinMembersDialogService> _logger;
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    private static extern nint SendMessage(nint hWnd, uint Msg, nint wParam, string lParam);
+    public SkywinMembersDialogService(IWindowsApiService windowsApiService, ILogger<SkywinMembersDialogService> logger)
+    {
+        _logger = logger;
+        _windowsApiService = windowsApiService;
+    }
 
     public void InsertData(PersonDetails person)
     {
-        nint membersHandle = NativeMethods.FindWindow(null, "Members");
+        _logger.LogInformation("Finding members window");
+
+        var membersHandle = _windowsApiService.FindWindow(null, "Members");
+
         if (membersHandle == nint.Zero)
         {
-            Console.WriteLine("No members dialog found");
+            _logger.LogError("No members dialog found");
             return;
         }
 
-
-        var dx = new WindowHandleInfo(membersHandle).GetAllChildHandles();
+        var childHandles = _windowsApiService.GetAllChildHandles(membersHandle);
         var inputFields = new Dictionary<int, Win32CustomControl>();
         var comboBoxes = new Dictionary<int, Win32CustomControl>();
         int inputFieldsIdx = 1;
         int comboBoxesIdx = 1;
-        foreach (var p in dx)
+        foreach (var p in childHandles)
         {
             var sb = new StringBuilder();
             NativeMethods.GetClassName(p, sb, 100);
@@ -45,38 +50,27 @@ public class SkywinMembersDialogService : ISkywinMembersDialogService
             }
         }
 
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKinPhone, person.ContactPhone, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKin, person.ContactName, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.Email, person.Mail, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.City, person.City, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.Zip, person.Zip, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.Address, person.Address, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.LastName, person.LastName, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.DFUNo, person.Id, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.HomeDz, person.Club, ControlSendMessage);
-        IfHasControlThenDo(comboBoxes, SkywinMembersConstants.Gender, person.Gender == "M" ? "Male" : "Female", ComboSelect);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.Firstname, person.FirstName, ControlSendMessage);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.LastName, person.LastName, ControlSendMessage);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKinPhone, person.ContactPhone, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKin, person.ContactName, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.Email, person.Mail, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.City, !string.IsNullOrWhiteSpace(person.City) ? person.City : "NOWHERE", _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.Zip, !string.IsNullOrWhiteSpace(person.Zip) ? person.Zip : "0000", _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.Address, person.Address, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.LastName, person.LastName, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.DFUNo, person.Id, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.HomeDz, person.Club, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(comboBoxes, SkywinMembersConstants.Gender, person.Gender == "M" ? "Male" : "Female", _windowsApiService.SendMessage_ComboSelect);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.Firstname, person.FirstName, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.LastName, person.LastName, _windowsApiService.SendMessage_SetText);
+        _logger.LogInformation("Inserted info into Skywin");
     }
 
-
-    private void IfHasControlThenDo(Dictionary<int, Win32CustomControl> dict, int controlIndex, string text, Action<nint, string> lambda)
+    private void IfHasControlThenDo(Dictionary<int, Win32CustomControl> dict, int controlIndex, string text, Action<nint, string> DoAction)
     {
         if (!dict.TryGetValue(controlIndex, out var info))
         {
             return;
         }
-
-        lambda(info.ptr, text);
-    }
-
-    private void ControlSendMessage(nint controlPtr, string text)
-    {
-        SendMessage(controlPtr, (uint)WindowsMessages.SETTEXT, nint.Zero, text.Trim());
-    }
-
-    private void ComboSelect(nint controlPtr, string text)
-    {
-        SendMessage(controlPtr, CB_SELECTSTRING, nint.Zero, text.Trim());
+        DoAction(info.ptr, text);
     }
 }

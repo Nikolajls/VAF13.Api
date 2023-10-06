@@ -32,6 +32,7 @@
             dataGridView1 = new DataGridView();
             progressBar1 = new ProgressBar();
             btn_search = new Button();
+            btn_Clear = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
@@ -44,6 +45,9 @@
             // 
             // dataGridView1
             // 
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
+            dataGridView1.AllowUserToOrderColumns = true;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Location = new Point(16, 63);
             dataGridView1.Name = "dataGridView1";
@@ -71,11 +75,23 @@
             btn_search.UseVisualStyleBackColor = true;
             btn_search.Click += search_Click;
             // 
+            // btn_Clear
+            // 
+            btn_Clear.Location = new Point(794, 12);
+            btn_Clear.Name = "btn_Clear";
+            btn_Clear.Size = new Size(122, 23);
+            btn_Clear.TabIndex = 4;
+            btn_Clear.Text = "Clear";
+            btn_Clear.UseVisualStyleBackColor = true;
+            btn_Clear.Visible = false;
+            btn_Clear.Click += btn_Clear_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1048, 450);
+            Controls.Add(btn_Clear);
             Controls.Add(progressBar1);
             Controls.Add(dataGridView1);
             Controls.Add(btn_search);
@@ -93,5 +109,6 @@
         private DataGridView dataGridView1;
         private ProgressBar progressBar1;
         private Button btn_search;
+        private Button btn_Clear;
     }
 }

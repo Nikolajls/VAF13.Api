@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using VAF13.Klubadmin.Domain.DTOs;
 using VAF13.Klubadmin.Domain.Services.Skywin;
 using VAF13.Klubadmin.Domain.Services.VAFapi;
@@ -6,14 +7,17 @@ namespace VAF13.Klubadmin.UI.Winform
 {
     public partial class Form1 : Form
     {
-        private readonly IVAFApiIntegration _test;
+        private readonly IVafApiIntegration _test;
         private readonly ISkywinMembersDialogService _skywinMembersDialogService;
+        private readonly ILogger<Form1> _logger;
+
         private List<PersonDetails> _lastSearched;
 
-        public Form1(IVAFApiIntegration test, ISkywinMembersDialogService skywinMembersDialogService)
+        public Form1(IVafApiIntegration test, ISkywinMembersDialogService skywinMembersDialogService, ILogger<Form1> logger)
         {
             _test = test;
             _skywinMembersDialogService = skywinMembersDialogService;
+            _logger = logger;
             InitializeComponent();
 
             dataGridView1.ColumnCount = 8;
@@ -36,45 +40,76 @@ namespace VAF13.Klubadmin.UI.Winform
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.MultiSelect = false;
             _lastSearched = Array.Empty<PersonDetails>().ToList();
+            dataGridView1.Rows.Clear();
         }
 
         private void dataGridViewSoftware_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            _logger.LogInformation("Cell clicked! col:{ColumnIndex} row:{RowIndex}", e.ColumnIndex, e.RowIndex);
             if (e.ColumnIndex != 8)
                 return;
 
             var dataToInsert = _lastSearched.ElementAtOrDefault(e.RowIndex);
             if (dataToInsert is null)
             {
+                _logger.LogError("Unable to find element at");
                 return;
             }
 
             if (MessageBox.Show($@"Insert into empty members dialog {dataToInsert.FirstName} {dataToInsert.LastName}",
-                    "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    "", MessageBoxButtons.YesNo) == DialogResult.No)
             {
-                _skywinMembersDialogService.InsertData(dataToInsert);
+                _logger.LogInformation("Aborting inserting into members!");
+                return;
             }
+            _skywinMembersDialogService.InsertData(dataToInsert);
         }
 
         private async void search_Click(object sender, EventArgs e)
         {
+            _logger.LogInformation("Search clicked!");
+            var searchName = txt_name.Text;
+            if (string.IsNullOrEmpty(searchName))
+            {
+                return;
+            }
+
             progressBar1.Visible = true;
             btn_search.Visible = false;
+            btn_Clear.Visible = false;
             var searchResults = await _test
-                .SearchAll(txt_name.Text)
+                .SearchAll(searchName)
                 .ConfigureAwait(true);
 
-            _lastSearched = searchResults;
-            dataGridView1.Rows.Clear();
+            _lastSearched = searchResults
+                .OrderBy(c => c.FirstName)
+                .ThenBy(c => c.LastName)
+                .ThenBy(c => c.Club)
+                .ToList();
 
+            _logger.LogInformation("Result from search resulted in #{Count}", _lastSearched.Count);
+            dataGridView1.Rows.Clear();
             foreach (var person in _lastSearched)
             {
                 object[] row = { person.FirstName, person.LastName, person.Club, person.Id, person.ContactRelation, person.ContactName, person.Phone, person.Gender };
                 dataGridView1.Rows.Add(row);
             }
 
+            if (_lastSearched.Count > 0)
+            {
+                btn_Clear.Visible = true;
+            }
             progressBar1.Visible = false;
             btn_search.Visible = true;
+        }
+
+        private void btn_Clear_Click(object sender, EventArgs e)
+        {
+            _logger.LogInformation("Clear clicked!");
+            txt_name.Text = string.Empty;
+            _lastSearched = Array.Empty<PersonDetails>().ToList();
+            dataGridView1.Rows.Clear();
+            btn_Clear.Visible = false;
         }
     }
 }
