@@ -25,12 +25,14 @@ public class ApiKeyMiddleware
         {
             context.Response.StatusCode = 401;
             await context.Response.WriteAsync("Api Key not found!");
+            return;
         }
 
         if (!_apiConfiguration.APIKey.Equals(apiKeyVal))
         {
             context.Response.StatusCode = 401;
             await context.Response.WriteAsync("Unauthorized client");
+            return;
         }
 
         await _requestDelegate(context);

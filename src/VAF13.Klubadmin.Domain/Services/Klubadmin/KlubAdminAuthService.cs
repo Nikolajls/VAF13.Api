@@ -10,16 +10,25 @@ public class KlubAdminAuthService : IKlubAdminAuthService
     private readonly ILogger<KlubAdminAuthService> _logger;
     private readonly DFUConfiguration _apiDfuConfiguraton;
     private readonly HttpClient _httpClient;
+    private string cookieValue = string.Empty;
+
 
     public KlubAdminAuthService(HttpClient httpClient, ILogger<KlubAdminAuthService> logger, IOptions<DFUConfiguration> apiDfuConfiguraton)
     {
         _httpClient = httpClient;
         _apiDfuConfiguraton = apiDfuConfiguraton.Value;
         _logger = logger;
+        _logger.LogInformation("KlubAdminAuthService instantinated");
     }
 
     public async Task<string> Authenticate()
     {
+        if (!string.IsNullOrEmpty(cookieValue))
+        {
+            _logger.LogInformation("Already logged in");
+            return cookieValue;
+        }
+
         var loginDict = new Dictionary<string, string>()
         {
             ["loginid"] = _apiDfuConfiguraton.Username,
@@ -30,12 +39,12 @@ public class KlubAdminAuthService : IKlubAdminAuthService
         var loginContentTwo = new FormUrlEncodedContent(loginDict);
         _logger.LogInformation("getting login access");
         var loginResponse = await _httpClient.PostAsync("klubadmin/pages/", loginContentTwo);
-        _logger.LogInformation("Got Login Access {StatusCode}", loginResponse.StatusCode);
+        _logger.LogInformation("Got Login Access Http Status Code: {StatusCode}", loginResponse.StatusCode);
 
         var responseString = await loginResponse.Content.ReadAsStringAsync();
 
         loginResponse.EnsureSuccessStatusCode();
-        var cookieValue = string.Empty;
+        cookieValue = string.Empty;
         var cookieSetHeader = loginResponse.Headers.Where(c => c.Key == "Set-Cookie").SelectMany(c => c.Value).FirstOrDefault(e => e.Contains("PHPSESSID"));
         if (!string.IsNullOrEmpty(cookieSetHeader))
         {
