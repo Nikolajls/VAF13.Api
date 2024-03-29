@@ -27,7 +27,7 @@ public class KlubAdminService : IKlubAdminService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unable to do Search Person from Search all - {Message}");
+            _logger.LogError(ex, "Unable to do Search Person from Search all - {Message}", ex.Message);
             return Enumerable.Empty<PersonDetails>();
         }
 
