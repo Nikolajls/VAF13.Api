@@ -11,6 +11,7 @@ public class KlubAdminService : IKlubAdminService
 {
     private readonly ILogger<KlubAdminService> _logger;
     private readonly HttpClient _httpClient;
+
     public KlubAdminService(HttpClient httpClient, ILogger<KlubAdminService> logger)
     {
         _httpClient = httpClient;
@@ -38,6 +39,7 @@ public class KlubAdminService : IKlubAdminService
             var details = await GetPersonInfo(c.Id, c.Club);
             if (details != null)
             {
+                details.Certificate = c.Certificate;
                 persons.Add(details);
             }
         }).ToArray();
@@ -76,7 +78,6 @@ public class KlubAdminService : IKlubAdminService
             return Enumerable.Empty<PersonSearchResult>();
         }
 
-
         var searchResult = JsonConvert.DeserializeObject<SearchResult>(responseString);
         if (searchResult is not null)
         {
@@ -100,7 +101,7 @@ public class KlubAdminService : IKlubAdminService
         HttpResponseMessage? requestResponse = null;
         try
         {
-             requestResponse = await _httpClient.PostAsync("klubadmin/pages/ajax.php", personDetails);
+            requestResponse = await _httpClient.PostAsync("klubadmin/pages/ajax.php", personDetails);
             _logger.LogInformation("HTTP Response for info on {UserId}, {StatusCode}", loginDict["personId"],
                 requestResponse.StatusCode);
             requestResponse.EnsureSuccessStatusCode();

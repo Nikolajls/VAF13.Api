@@ -15,5 +15,6 @@ public class PersonSearchResult
     [JsonProperty("7")] public string Phone { get; set; } = string.Empty;
     [JsonProperty("8")] public string Email { get; set; } = string.Empty;
     [JsonProperty("9")] public string Type { get; set; } = string.Empty;
-    [JsonProperty("10")] public string Id { get; set; } = string.Empty;
+    [JsonProperty("10")] public string Certificate { get; set; } = string.Empty;
+    [JsonProperty("11")] public string Id { get; set; } = string.Empty;
 }
