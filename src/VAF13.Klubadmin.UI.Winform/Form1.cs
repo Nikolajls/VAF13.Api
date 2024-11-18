@@ -11,7 +11,7 @@ namespace VAF13.Klubadmin.UI.Winform
         private readonly ISkywinMembersDialogService _skywinMembersDialogService;
         private readonly ILogger<Form1> _logger;
 
-        private List<PersonDetails> _lastSearched;
+        private List<PersonDetails> _lastSearched = Array.Empty<PersonDetails>().ToList();
 
         public Form1(IVafApiIntegration test, ISkywinMembersDialogService skywinMembersDialogService, ILogger<Form1> logger)
         {
@@ -19,17 +19,23 @@ namespace VAF13.Klubadmin.UI.Winform
             _skywinMembersDialogService = skywinMembersDialogService;
             _logger = logger;
             InitializeComponent();
+            Initialize_DataGridView();
+        }
 
-            dataGridView1.ColumnCount = 8;
+        private void Initialize_DataGridView()
+        {
+            dataGridView1.ColumnCount = 9;
             dataGridView1.Name = "Members view";
             dataGridView1.Columns[0].Name = "First Name";
             dataGridView1.Columns[1].Name = "Last Name";
             dataGridView1.Columns[2].Name = "Club";
-            dataGridView1.Columns[3].Name = "DFU No";
+            dataGridView1.Columns[3].Name = "C";
+            dataGridView1.Columns[4].Name = "DFU No";
             dataGridView1.Columns[4].Name = "Contact Relation";
             dataGridView1.Columns[5].Name = "Contact Name";
             dataGridView1.Columns[6].Name = "Contact Phone";
             dataGridView1.Columns[7].Name = "Gender";
+
             DataGridViewButtonColumn button = new DataGridViewButtonColumn();
             button.Name = "Skywin";
             button.HeaderText = "Skywin";
@@ -39,14 +45,14 @@ namespace VAF13.Klubadmin.UI.Winform
 
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.MultiSelect = false;
-            _lastSearched = Array.Empty<PersonDetails>().ToList();
+
             dataGridView1.Rows.Clear();
         }
 
         private void dataGridViewSoftware_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             _logger.LogInformation("Cell clicked! col:{ColumnIndex} row:{RowIndex}", e.ColumnIndex, e.RowIndex);
-            if (e.ColumnIndex != 8)
+            if (e.ColumnIndex != 9)
                 return;
 
             var dataToInsert = _lastSearched.ElementAtOrDefault(e.RowIndex);
@@ -62,6 +68,7 @@ namespace VAF13.Klubadmin.UI.Winform
                 _logger.LogInformation("Aborting inserting into members!");
                 return;
             }
+
             _skywinMembersDialogService.InsertData(dataToInsert);
         }
 
@@ -89,9 +96,10 @@ namespace VAF13.Klubadmin.UI.Winform
 
             _logger.LogInformation("Result from search resulted in #{Count}", _lastSearched.Count);
             dataGridView1.Rows.Clear();
+
             foreach (var person in _lastSearched)
             {
-                object[] row = { person.FirstName, person.LastName, person.Club, person.Id, person.ContactRelation, person.ContactName, person.Phone, person.Gender };
+                object[] row = [person.FirstName, person.LastName, person.Club, person.Certificate, person.Id, person.ContactRelation, person.ContactName, person.Phone, person.Gender];
                 dataGridView1.Rows.Add(row);
             }
 

@@ -16,7 +16,7 @@ internal static class Program
     ///  The main entry point for the application.
     /// </summary>
     [STAThread]
-    static void Main()
+    private static void Main()
     {
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
@@ -31,7 +31,7 @@ internal static class Program
         var configuration = configurationBuilder.Build();
         services.AddOptions();
         services.Configure<UiAppConfiguration>(configuration.GetSection(UiAppConfiguration.ConfigurationSectionName));
-            
+
         //
         services.AddHttpClient<IVafApiIntegration, VafApiIntegration>((sp, client) =>
         {
@@ -40,11 +40,11 @@ internal static class Program
 
             var apiEndpoint = uiAppConfiguration.ApiEndpoint ?? string.Empty;
             var apiKey = uiAppConfiguration.APIKey ?? string.Empty;
-            logger.LogInformation("HTTP endpoint: {Http} Key: {ApiKey}" , apiEndpoint, apiKey.Substring(0,1));
+            logger.LogInformation("HTTP endpoint: {Http} Key: {ApiKey}", apiEndpoint, apiKey.Substring(0, 1));
 
             client.BaseAddress = new Uri(apiEndpoint);
             client.DefaultRequestHeaders.Add("X-API-KEY", apiKey);
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PostmanRuntime", "7.23"));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("VAF13UI", "1.0"));
         });
 
         // Logging
@@ -62,7 +62,6 @@ internal static class Program
             x.AddSerilog(dispose: true);
         });
 
-        //
         services.AddSingleton<IWindowsApiService, WindowsApiService>();
         services.AddSingleton<Form1>();
         services.AddSingleton<ISkywinMembersDialogService, SkywinMembersDialogService>();

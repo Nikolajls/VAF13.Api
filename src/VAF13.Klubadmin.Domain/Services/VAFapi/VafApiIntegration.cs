@@ -23,7 +23,7 @@ public class VafApiIntegration : IVafApiIntegration
         {
             _logger.LogInformation("Calling API!");
             var timer = Stopwatch.StartNew();
-            var response = await _client.GetAsync($"/SearchAll?name={name}");
+            var response = await _client.GetAsync($"api/Member/SearchAll?name={name}");
             timer.Stop();
             _logger.LogInformation("Called API took {Milliseconds}", timer.ElapsedMilliseconds);
 
@@ -41,4 +41,5 @@ public class VafApiIntegration : IVafApiIntegration
     }
 }
 
-public class VAFApiIntegrationHttpClient { }
+public class VAFApiIntegrationHttpClient
+{ }
