@@ -9,8 +9,10 @@ import (
 func Serve() {
 	r := chi.NewRouter()
 
-	r.Route("/", func(r chi.Router) {
-		r.Get("/", handlers.Index)
+	r.Route("/api/Member", func(r chi.Router) {
+		r.Get("/Person", handlers.GetPerson)       // ?personId=2080&club=VAF
+		r.Get("/Search", handlers.GetSearch)       //?name=Nikolaj
+		r.Get("/SearchAll", handlers.GetSearchAll) //?name = Nikolaj
 	})
 
 	err := http.ListenAndServe(":8080", r)

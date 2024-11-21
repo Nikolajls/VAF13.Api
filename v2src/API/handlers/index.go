@@ -5,28 +5,91 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
-func Index(w http.ResponseWriter, request *http.Request) {
-	persons, err := Klubadmin.SearchAll("Lund")
-	for i, value := range persons {
-		fmt.Printf("SearchAll Person[%v]:%+v\n", i, value)
-	}
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to retrieve"))
+func GetPerson(w http.ResponseWriter, request *http.Request) {
+	personIdString := request.URL.Query().Get("personId")
+	club := request.URL.Query().Get("club")
+	if personIdString == "" {
+		http.Error(w, "Missing query parameter 'personId'", http.StatusBadRequest)
 		return
 	}
-	// Set the response header to indicate JSON content
+
+	personId, err := strconv.Atoi(personIdString)
+	if err != nil {
+		http.Error(w, "Invalid query parameter 'personId'", http.StatusBadRequest)
+		return
+	}
+
+	personDetails, err := Klubadmin.GetPerson(personId, club)
+
+	if err != nil {
+		fmt.Printf("Unable to do GetPerson for %v\nError:%v\n", personId, err)
+		http.Error(w, "Internal Server Error doing GetPerson", http.StatusInternalServerError)
+		return
+	}
+
+	err = OkJson(personDetails, w)
+	if err != nil {
+		http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func GetSearch(w http.ResponseWriter, request *http.Request) {
+	searchName := request.URL.Query().Get("name")
+	if searchName == "" {
+		http.Error(w, "Missing query parameter 'name'", http.StatusBadRequest)
+		return
+	}
+
+	persons, err := Klubadmin.Search(searchName)
+
+	if err != nil {
+		fmt.Printf("Unable to do search for %v\nError:%v\n", searchName, err)
+		http.Error(w, "Internal Server Error doing Search", http.StatusInternalServerError)
+		return
+	}
+
+	err = OkJson(persons, w)
+	if err != nil {
+		http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func GetSearchAll(w http.ResponseWriter, request *http.Request) {
+	searchName := request.URL.Query().Get("name")
+	if searchName == "" {
+		http.Error(w, "Missing query parameter 'name'", http.StatusBadRequest)
+		return
+	}
+
+	persons, err := Klubadmin.SearchAll(searchName)
+	if err != nil {
+		fmt.Printf("Unable to do search all for %v\nError:%v\n", searchName, err)
+		http.Error(w, "Internal Server Error doing SearchAll", http.StatusInternalServerError)
+		return
+	}
+
+	err = OkJson(persons, w)
+	if err != nil {
+		http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func OkJson(data any, w http.ResponseWriter) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-
-	// Convert the slice to JSON
-	jsonData, err := json.Marshal(persons)
+	_, err = w.Write(jsonData)
 	if err != nil {
-		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-		return
+		return err
 	}
-
-	// Write the JSON data to the response
-	w.Write(jsonData)
+	return nil
 }

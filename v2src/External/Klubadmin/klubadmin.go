@@ -84,7 +84,7 @@ func fetchDetail(person SearchResultPerson, wg *sync.WaitGroup, semaphore chan s
 	semaphore <- struct{}{}
 	defer func() { <-semaphore }() // Release the semaphore slot
 
-	personResult, err := GetPerson(person)
+	personResult, err := GetPerson(person.Id, person.Club)
 	if err != nil {
 		errors <- err
 		return
@@ -111,11 +111,11 @@ func Search(name string) ([]SearchResultPerson, error) {
 	var resp, _, err = Helpers.MakeHttpRequest(client, "GET", requestUrl, headers, nil)
 
 	if err != nil {
-		return make([]SearchResultPerson, 0), fmt.Errorf("Error making SearchPerson request: %v", err)
+		return make([]SearchResultPerson, 0), fmt.Errorf("error making SearchPerson request: %v", err)
 	}
 
 	if resp.StatusCode != 200 {
-		return make([]SearchResultPerson, 0), fmt.Errorf("Search for person returned non successful statuscode")
+		return make([]SearchResultPerson, 0), fmt.Errorf("search for person returned non successful statuscode")
 	}
 
 	searchResponse, _, _ := Helpers.ParseJSONResponse[SearchResult](resp)
@@ -127,7 +127,7 @@ func Search(name string) ([]SearchResultPerson, error) {
 	return searchResponse.Data, nil
 }
 
-func GetPerson(person SearchResultPerson) (*PersonResult, error) {
+func GetPerson(personId int, personClub string) (*PersonResult, error) {
 
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -135,7 +135,7 @@ func GetPerson(person SearchResultPerson) (*PersonResult, error) {
 	}
 
 	data := url.Values{}
-	personIdString := strconv.Itoa(person.Id)
+	personIdString := strconv.Itoa(personId)
 	data.Set("personId", personIdString)
 	data.Set("group", "personInfo")
 	bodyT := bytes.NewBufferString(data.Encode())
@@ -145,37 +145,43 @@ func GetPerson(person SearchResultPerson) (*PersonResult, error) {
 	var resp, _, err = Helpers.MakeHttpRequest(client, "POST", requestUrl, headers, body)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error making GetPerson request: %v for name:%v  personId:%v", err, person.Name, person.Id)
+		return nil, fmt.Errorf("error making GetPerson request for personId: %v", personId)
 	}
 
 	//Verify statusCode
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("GetPerson returned non successful statuscode: %v for namme:%v  personId:%v", resp.StatusCode, person.Name, personIdString)
+		return nil, fmt.Errorf("getPerson returned non successful statuscode: %v for personId:%v", resp.StatusCode, personId)
 	}
 
 	personHtmlDetails, err := Helpers.ReadHttpResponseAsString(resp)
+	if err != nil {
+		return nil, err
+	}
+	resultingPerson, err := convertHtmlPersonToPerson(personIdString, personClub, personHtmlDetails)
+	if err != nil {
+		return nil, err
+	}
 
-	resultingPerson := convertHtmlPersonToPerson(person, personHtmlDetails)
 	resultingPerson.CleanupResult()
 	return resultingPerson, nil
 }
 
-func convertHtmlPersonToPerson(person SearchResultPerson, personHtmlDetails string) *PersonResult {
+func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDetails string) (*PersonResult, error) {
 	doc, err := html.Parse(strings.NewReader(personHtmlDetails))
 	if err != nil {
-		fmt.Errorf("Unable to parse html to html node")
+		return nil, fmt.Errorf("unable to parse html to html node")
 	}
 
 	var fullName string = Helpers.GetElementAttributeValue(doc, "person_firstname", "value")
 	nameSplit := strings.Split(fullName, " ")
 
 	var result PersonResult = PersonResult{
-		Id:              strconv.Itoa(person.Id),
+		Id:              personId,
 		FirstName:       nameSplit[0],
 		LastName:        strings.Join(nameSplit[1:], " "),
 		Address:         Helpers.GetElementAttributeValue(doc, "person_address", "value"),
 		Zip:             Helpers.GetElementAttributeValue(doc, "person_zip", "value"),
-		Club:            person.Club,
+		Club:            personClub,
 		City:            Helpers.GetElementAttributeValue(doc, "person_city", "value"),
 		Country:         Helpers.GetElementAttributeValue(doc, "person_country", "data-orgvalue"),
 		Mail:            Helpers.GetElementAttributeValue(doc, "person_mail", "value"),
@@ -187,5 +193,5 @@ func convertHtmlPersonToPerson(person SearchResultPerson, personHtmlDetails stri
 		Gender:          Helpers.GetElementAttributeValue(doc, "gender", "data-orgvalue"),
 		Certificate:     Helpers.GetElementAttributeValue(doc, "certificateNr_3", "data-orgvalue"),
 	}
-	return &result
+	return &result, nil
 }
