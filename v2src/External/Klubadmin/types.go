@@ -28,23 +28,38 @@ type SearchResultPerson struct {
 	Id          int    `json:"11"`
 }
 
-type PersonResult struct {
-	Id              string `json:"id"`
-	FirstName       string `json:"firstName"`
-	LastName        string `json:"lastName"`
-	Address         string `json:"address"`
-	City            string `json:"city"`
-	Zip             string `json:"zip"`
-	Country         string `json:"country"`
-	Mail            string `json:"mail"`
-	Phone           string `json:"phone"`
-	Birthday        string `json:"birthday"`
-	Club            string `json:"club"`
-	ContactRelation string `json:"contactRelation"`
-	ContactName     string `json:"contactName"`
-	ContactPhone    string `json:"contactPhone"`
-	Gender          string `json:"gender"`
-	Certificate     string `json:"certificate"`
+type SearchResultResponse struct {
+	Name        string `json:"Name"`
+	Club        string `json:"Club"`
+	DateAdded   string `json:"DateAdded"`
+	DateRemoved string `json:"DateRemoved"`
+	Address     string `json:"Address"`
+	DFUNo       int    `json:"DFUNo"`
+	Birthday    string `json:"Birthday"`
+	Phone       string `json:"Phone"`
+	Email       string `json:"Email"`
+	Type        string `json:"Type"`
+	Certificate int    `json:"Certificate"`
+	Id          int    `json:"Id"`
+}
+
+type PersonResponse struct {
+	Id              string `json:"Id"`
+	FirstName       string `json:"FirstName"`
+	LastName        string `json:"LastName"`
+	Address         string `json:"Address"`
+	City            string `json:"City"`
+	Zip             string `json:"Zip"`
+	Country         string `json:"Country"`
+	Mail            string `json:"Mail"`
+	Phone           string `json:"Phone"`
+	Birthday        string `json:"Birthday"`
+	Club            string `json:"Club"`
+	ContactRelation string `json:"ContactRelation"`
+	ContactName     string `json:"ContactName"`
+	ContactPhone    string `json:"ContactPhone"`
+	Gender          string `json:"Gender"`
+	Certificate     string `json:"Certificate"`
 }
 
 type SearchResultCleanUp interface {
@@ -66,7 +81,7 @@ func (result *SearchResultPerson) CleanupResult() {
 	}
 }
 
-func (result *PersonResult) CleanupResult() {
+func (result *PersonResponse) CleanupResult() {
 	if result.Address == "(skjult)" {
 		result.Address = ""
 	}

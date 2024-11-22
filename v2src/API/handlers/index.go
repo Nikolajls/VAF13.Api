@@ -4,6 +4,7 @@ import (
 	"VAF13/External/Klubadmin"
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/render"
 	"net/http"
 	"strconv"
 )
@@ -29,12 +30,12 @@ func GetPerson(w http.ResponseWriter, request *http.Request) {
 		http.Error(w, "Internal Server Error doing GetPerson", http.StatusInternalServerError)
 		return
 	}
-
-	err = OkJson(personDetails, w)
-	if err != nil {
-		http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
-		return
-	}
+	render.JSON(w, request, personDetails)
+	//err = OkJson(personDetails, w)
+	//if err != nil {
+	//	http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
+	//	return
+	//}
 }
 
 func GetSearch(w http.ResponseWriter, request *http.Request) {

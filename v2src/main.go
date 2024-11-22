@@ -2,10 +2,13 @@
 // Click here and start typing.
 package main
 
-import api "VAF13/API"
+import (
+	"VAF13/api"
+	"fmt"
+)
 
 func main() {
-
-	ExternalPocTest()
+	fmt.Println("Serving API")
 	api.Serve()
+	fmt.Println("Served API")
 }

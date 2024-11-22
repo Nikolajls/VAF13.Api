@@ -43,8 +43,8 @@ func (a *AuthMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 	return a.Transport.RoundTrip(clonedReq)
 }
 
-func SearchAll(name string) ([]PersonResult, error) {
-	var resultSlice []PersonResult
+func SearchAll(name string) ([]PersonResponse, error) {
+	var resultSlice []PersonResponse
 
 	persons, err := Search(name)
 	if err != nil {
@@ -53,7 +53,7 @@ func SearchAll(name string) ([]PersonResult, error) {
 
 	personCount := len(persons)
 	var wg sync.WaitGroup
-	results := make(chan PersonResult, personCount)
+	results := make(chan PersonResponse, personCount)
 	errors := make(chan error, personCount)
 	semaphore := make(chan struct{}, 10)
 
@@ -77,7 +77,7 @@ func SearchAll(name string) ([]PersonResult, error) {
 	return resultSlice, nil
 }
 
-func fetchDetail(person SearchResultPerson, wg *sync.WaitGroup, semaphore chan struct{}, results chan<- PersonResult, errors chan<- error) {
+func fetchDetail(person SearchResultResponse, wg *sync.WaitGroup, semaphore chan struct{}, results chan<- PersonResponse, errors chan<- error) {
 	defer wg.Done()
 
 	// Acquire a semaphore slot
@@ -94,7 +94,7 @@ func fetchDetail(person SearchResultPerson, wg *sync.WaitGroup, semaphore chan s
 	results <- *personResult
 }
 
-func Search(name string) ([]SearchResultPerson, error) {
+func Search(name string) ([]SearchResultResponse, error) {
 	now := time.Now()
 	epochSeconds := now.Unix()
 	nameEscaped := url.QueryEscape(name)
@@ -111,23 +111,39 @@ func Search(name string) ([]SearchResultPerson, error) {
 	var resp, _, err = Helpers.MakeHttpRequest(client, "GET", requestUrl, headers, nil)
 
 	if err != nil {
-		return make([]SearchResultPerson, 0), fmt.Errorf("error making SearchPerson request: %v", err)
+		return make([]SearchResultResponse, 0), fmt.Errorf("error making SearchPerson request: %v", err)
 	}
 
 	if resp.StatusCode != 200 {
-		return make([]SearchResultPerson, 0), fmt.Errorf("search for person returned non successful statuscode")
+		return make([]SearchResultResponse, 0), fmt.Errorf("search for person returned non successful statuscode")
 	}
 
 	searchResponse, _, _ := Helpers.ParseJSONResponse[SearchResult](resp)
+	personsResponse := make([]SearchResultResponse, len(searchResponse.Data))
 	for index := range searchResponse.Data {
 		ptr := &searchResponse.Data[index]
 		ptr.CleanupResult()
+		personsResponse[index] = SearchResultResponse{
+			Name:        ptr.Name,
+			Club:        ptr.Club,
+			DateAdded:   ptr.DateAdded,
+			DateRemoved: ptr.DateRemoved,
+			Address:     ptr.Address,
+			DFUNo:       ptr.DFUNo,
+			Birthday:    ptr.Birthday,
+			Phone:       ptr.Phone,
+			Email:       ptr.Email,
+			Type:        ptr.Type,
+			Certificate: ptr.Certificate,
+			Id:          ptr.Id,
+		}
+
 	}
 
-	return searchResponse.Data, nil
+	return personsResponse, nil
 }
 
-func GetPerson(personId int, personClub string) (*PersonResult, error) {
+func GetPerson(personId int, personClub string) (*PersonResponse, error) {
 
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -166,7 +182,7 @@ func GetPerson(personId int, personClub string) (*PersonResult, error) {
 	return resultingPerson, nil
 }
 
-func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDetails string) (*PersonResult, error) {
+func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDetails string) (*PersonResponse, error) {
 	doc, err := html.Parse(strings.NewReader(personHtmlDetails))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse html to html node")
@@ -175,7 +191,7 @@ func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDet
 	var fullName string = Helpers.GetElementAttributeValue(doc, "person_firstname", "value")
 	nameSplit := strings.Split(fullName, " ")
 
-	var result PersonResult = PersonResult{
+	var result PersonResponse = PersonResponse{
 		Id:              personId,
 		FirstName:       nameSplit[0],
 		LastName:        strings.Join(nameSplit[1:], " "),
