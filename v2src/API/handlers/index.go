@@ -31,11 +31,6 @@ func GetPerson(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 	render.JSON(w, request, personDetails)
-	//err = OkJson(personDetails, w)
-	//if err != nil {
-	//	http.Error(w, "Internal Server Error writing response", http.StatusInternalServerError)
-	//	return
-	//}
 }
 
 func GetSearch(w http.ResponseWriter, request *http.Request) {

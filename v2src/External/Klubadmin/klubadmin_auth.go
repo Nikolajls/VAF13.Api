@@ -6,35 +6,42 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
+	"time"
 )
 
 var authClient *http.Client = &http.Client{}
 var storedPhpSession *SafeString = &SafeString{}
-var username string = ""
-var password string = ""
+var username string = os.Getenv("DfuConfiguration_Username")
+var password string = os.Getenv("DfuConfiguration_Password")
 
 type SafeString struct {
-	mu  sync.RWMutex
-	val string
+	mu         sync.RWMutex
+	val        string
+	cachedTime time.Time
 }
 
-func (s *SafeString) Set(newValue string) {
+func (s *SafeString) Set(newValue string, cachedTime time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.val = newValue
+	s.cachedTime = cachedTime
 }
 
-func (s *SafeString) Get() string {
+func (s *SafeString) Get() (string, time.Time) {
 	s.mu.RLock() // Use RLock for readers
 	defer s.mu.RUnlock()
-	return s.val
+	return s.val, s.cachedTime
 }
 
 func Authenticate() (string, error) {
-	readSession := storedPhpSession.Get()
+	readSession, cachedTime := storedPhpSession.Get()
 	if readSession != "" {
-		return readSession, nil
+		cacheDiffMinutes := time.Now().Sub(cachedTime).Minutes()
+		if cacheDiffMinutes < 10 {
+			return readSession, nil
+		}
 	}
 
 	headers := map[string]string{
@@ -74,7 +81,7 @@ func Authenticate() (string, error) {
 	setCookieHeader := resp.Header.Get("Set-Cookie")
 	cookieMap := Helpers.ConvertHttpHeaderValueToMap(setCookieHeader)
 	if value, exists := cookieMap["PHPSESSID"]; exists {
-		storedPhpSession.Set(value)
+		storedPhpSession.Set(value, time.Now())
 		return value, nil
 	} else {
 		return "", fmt.Errorf("PHPSESSID not found")
