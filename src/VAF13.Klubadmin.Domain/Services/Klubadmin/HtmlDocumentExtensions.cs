@@ -19,10 +19,6 @@ public static class HtmlDocumentExtensions
 
         var value = element.Attributes.FirstOrDefault(c => c.Name == "value")?.DeEntitizeValue ?? string.Empty;
 
-        if (value == "(skjult)")
-        {
-            return string.Empty;
-        }
         return value;
     }
 
@@ -41,10 +37,6 @@ public static class HtmlDocumentExtensions
 
         var value = element.Attributes.FirstOrDefault(c => c.Name == "data-orgvalue")?.DeEntitizeValue ?? string.Empty;
 
-        if (value == "(skjult)")
-        {
-            return string.Empty;
-        }
         return value;
     }
 }

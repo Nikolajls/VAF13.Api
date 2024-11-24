@@ -18,15 +18,15 @@ namespace VAF13.Klubadmin.API.Controllers
 
         [HttpGet]
         [Route("Person")]
-        public async Task<IActionResult> GetPersonInfo(string personId, [FromQuery] string? club)
+        public async Task<IActionResult> GetPersonInfo([FromQuery] int personId)
         {
-            var personInfo = await _klubAdminService.GetPersonInfo(personId, club ?? string.Empty);
+            var personInfo = await _klubAdminService.GetPersonInfo(personId);
             return Ok(personInfo);
         }
 
         [HttpGet]
         [Route("Search")]
-        public async Task<IActionResult> Search(string name)
+        public async Task<IActionResult> Search([FromQuery] string name)
         {
             var searchResult = await _klubAdminService.SearchPerson(name);
             return Ok(searchResult);
@@ -34,7 +34,7 @@ namespace VAF13.Klubadmin.API.Controllers
 
         [HttpGet]
         [Route("SearchAll")]
-        public async Task<IActionResult> SearchAll(string name)
+        public async Task<IActionResult> SearchAll([FromQuery] string name)
         {
             var searchResult = await _klubAdminService.SearchAll(name);
             return Ok(searchResult);

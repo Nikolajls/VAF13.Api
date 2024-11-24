@@ -11,7 +11,7 @@ namespace VAF13.Klubadmin.UI.Winform
         private readonly ISkywinMembersDialogService _skywinMembersDialogService;
         private readonly ILogger<Form1> _logger;
 
-        private List<PersonDetails> _lastSearched = Array.Empty<PersonDetails>().ToList();
+        private List<PersonDetailsResponse> _lastSearched = Array.Empty<PersonDetailsResponse>().ToList();
 
         public Form1(IVafApiIntegration test, ISkywinMembersDialogService skywinMembersDialogService, ILogger<Form1> logger)
         {
@@ -115,7 +115,7 @@ namespace VAF13.Klubadmin.UI.Winform
         {
             _logger.LogInformation("Clear clicked!");
             txt_name.Text = string.Empty;
-            _lastSearched = Array.Empty<PersonDetails>().ToList();
+            _lastSearched = Array.Empty<PersonDetailsResponse>().ToList();
             dataGridView1.Rows.Clear();
             btn_Clear.Visible = false;
         }

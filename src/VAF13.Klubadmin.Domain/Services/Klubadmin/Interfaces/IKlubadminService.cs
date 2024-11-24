@@ -4,9 +4,10 @@ namespace VAF13.Klubadmin.Domain.Services.Klubadmin.Interfaces
 {
     public interface IKlubAdminService
     {
-        Task<IEnumerable<PersonSearchResult>> SearchPerson(string name);
-        Task<IEnumerable<PersonDetails>> SearchAll(string name);
+        Task<IEnumerable<PersonSearchResponse>> SearchPerson(string name);
 
-        Task<PersonDetails?> GetPersonInfo(string personId, string club);
+        Task<IEnumerable<PersonDetailsResponse>> SearchAll(string name);
+
+        Task<PersonDetailsResponse?> GetPersonInfo(int personId);
     }
 }

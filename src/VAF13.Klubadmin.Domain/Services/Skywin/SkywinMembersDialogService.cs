@@ -16,7 +16,7 @@ public class SkywinMembersDialogService : ISkywinMembersDialogService
         _windowsApiService = windowsApiService;
     }
 
-    public void InsertData(PersonDetails person)
+    public void InsertData(PersonDetailsResponse person)
     {
         _logger.LogInformation("Finding members window");
 
@@ -52,12 +52,12 @@ public class SkywinMembersDialogService : ISkywinMembersDialogService
 
         IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKinPhone, person.ContactPhone, _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.NextOfKin, person.ContactName, _windowsApiService.SendMessage_SetText);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.Email, person.Mail, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.Email, person.Email.ToString(), _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.City, !string.IsNullOrWhiteSpace(person.City) ? person.City : "NOWHERE", _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.Zip, !string.IsNullOrWhiteSpace(person.Zip) ? person.Zip : "0000", _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.Address, person.Address, _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.LastName, person.LastName, _windowsApiService.SendMessage_SetText);
-        IfHasControlThenDo(inputFields, SkywinMembersConstants.DFUNo, person.Id, _windowsApiService.SendMessage_SetText);
+        IfHasControlThenDo(inputFields, SkywinMembersConstants.DFUNo, person.Id.ToString(), _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.HomeDz, person.Club, _windowsApiService.SendMessage_SetText);
         IfHasControlThenDo(comboBoxes, SkywinMembersConstants.Gender, person.Gender == "M" ? "Male" : "Female", _windowsApiService.SendMessage_ComboSelect);
         IfHasControlThenDo(inputFields, SkywinMembersConstants.Firstname, person.FirstName, _windowsApiService.SendMessage_SetText);

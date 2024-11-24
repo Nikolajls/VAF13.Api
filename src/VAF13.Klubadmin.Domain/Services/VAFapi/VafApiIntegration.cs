@@ -17,7 +17,7 @@ public class VafApiIntegration : IVafApiIntegration
         _logger = logger;
     }
 
-    public async Task<List<PersonDetails>> SearchAll(string name)
+    public async Task<List<PersonDetailsResponse>> SearchAll(string name)
     {
         try
         {
@@ -30,13 +30,13 @@ public class VafApiIntegration : IVafApiIntegration
             var responseString = await response.Content.ReadAsStringAsync();
             _logger.LogInformation("API Response string: {JSON}", responseString);
 
-            var deserialized = JsonConvert.DeserializeObject<List<PersonDetails>>(responseString);
-            return deserialized ?? Array.Empty<PersonDetails>().ToList();
+            var deserialized = JsonConvert.DeserializeObject<List<PersonDetailsResponse>>(responseString);
+            return deserialized ?? Array.Empty<PersonDetailsResponse>().ToList();
         }
         catch (Exception ex)
         {
             _logger.LogInformation(ex, "Exception during external API call - {Message}", ex.Message);
-            return Array.Empty<PersonDetails>().ToList();
+            return Array.Empty<PersonDetailsResponse>().ToList();
         }
     }
 }

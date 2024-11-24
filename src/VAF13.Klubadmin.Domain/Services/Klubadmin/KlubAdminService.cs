@@ -1,8 +1,10 @@
 ﻿using System.Web;
+using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using VAF13.Klubadmin.Domain.DTOs;
+using VAF13.Klubadmin.Domain.DTOs.KlubadminResults;
 using VAF13.Klubadmin.Domain.Services.Klubadmin.Interfaces;
 
 namespace VAF13.Klubadmin.Domain.Services.Klubadmin;
@@ -19,9 +21,9 @@ public class KlubAdminService : IKlubAdminService
         _logger.LogInformation("KlubAdminService instantiated");
     }
 
-    public async Task<IEnumerable<PersonDetails>> SearchAll(string name)
+    public async Task<IEnumerable<PersonDetailsResponse>> SearchAll(string name)
     {
-        IEnumerable<PersonSearchResult> allSearchResults;
+        IEnumerable<PersonSearchResponse> allSearchResults;
         try
         {
             allSearchResults = await SearchPerson(name);
@@ -29,14 +31,14 @@ public class KlubAdminService : IKlubAdminService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unable to do Search Person from Search all - {Message}", ex.Message);
-            return Enumerable.Empty<PersonDetails>();
+            return Enumerable.Empty<PersonDetailsResponse>();
         }
 
-        var persons = new List<PersonDetails>();
+        var persons = new List<PersonDetailsResponse>();
 
         var detailsTasks = allSearchResults.Select(async c =>
         {
-            var details = await GetPersonInfo(c.Id, c.Club);
+            var details = await GetPersonInfo(c.Id);
             if (details != null)
             {
                 details.Certificate = c.Certificate;
@@ -53,7 +55,7 @@ public class KlubAdminService : IKlubAdminService
         return persons;
     }
 
-    public async Task<IEnumerable<PersonSearchResult>> SearchPerson(string name)
+    public async Task<IEnumerable<PersonSearchResponse>> SearchPerson(string name)
     {
         TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
         int secondsSinceEpoch = (int)t.TotalSeconds;
@@ -75,23 +77,27 @@ public class KlubAdminService : IKlubAdminService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unable to find data on SearchPerson for {Name} - {Message}", name, ex.Message);
-            return Enumerable.Empty<PersonSearchResult>();
+            return Enumerable.Empty<PersonSearchResponse>();
         }
 
         var searchResult = JsonConvert.DeserializeObject<SearchResult>(responseString);
         if (searchResult is not null)
         {
-            return searchResult.data;
+            return searchResult.data.Select(person =>
+            {
+                var obj = new PersonSearchResponse(person);
+                return obj;
+            }).ToList();
         }
 
-        return Enumerable.Empty<PersonSearchResult>();
+        return Enumerable.Empty<PersonSearchResponse>();
     }
 
-    public async Task<PersonDetails?> GetPersonInfo(string personId, string club)
+    public async Task<PersonDetailsResponse?> GetPersonInfo(int personId)
     {
         var loginDict = new Dictionary<string, string>()
         {
-            ["personId"] = personId,
+            ["personId"] = personId.ToString(),
             ["group"] = "personInfo",
         };
         var personDetails = new FormUrlEncodedContent(loginDict);
@@ -109,7 +115,7 @@ public class KlubAdminService : IKlubAdminService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception during GetPersonInfo for {PersonId} belonging to {Club} - {Message} - {StatusCode}", personId, club, ex.Message, requestResponse?.StatusCode);
+            _logger.LogError(ex, "Exception during GetPersonInfo for {PersonId} - {Message} - {StatusCode}", personId, ex.Message, requestResponse?.StatusCode);
             return null;
         }
 
@@ -123,7 +129,7 @@ public class KlubAdminService : IKlubAdminService
         var address = doc.GetElementValueById("person_address");
         var zipCode = doc.GetElementValueById("person_zip");
         var city = doc.GetElementValueById("person_city");
-        var country = doc.GetElementValueById("person_country");
+        var country = doc.GetDropdownValue("person_country");
         var mail = doc.GetElementValueById("person_mail");
         var phone = doc.GetElementValueById("person_cellular");
         var birthday = doc.GetElementValueById("person_birthdayDate_inverted");
@@ -131,24 +137,29 @@ public class KlubAdminService : IKlubAdminService
         var icePhone = doc.GetElementValueById("relative_cellular");
         var iceRelation = doc.GetElementValueById("person_relativerelation");
         var gender = doc.GetDropdownValue("gender");
-
-        return new PersonDetails()
+        var certificateNr = doc.GetElementValueById("certificateNr_3");
+        var clubStr = doc.GetElementbyId("currentMembershipsTable").SelectNodes("//tbody/tr[1]/td[1]").FirstOrDefault()?.InnerText ?? string.Empty;
+       
+        var response = new PersonDetailsResponse()
         {
             Id = personId,
             FirstName = firstnameValue,
             LastName = lastNameValue,
             Address = address,
             Zip = zipCode,
-            Club = club,
+            Club = clubStr,
             City = city,
             Country = country,
-            Mail = mail,
+            Email = mail,
             Phone = phone,
             Birthday = birthday,
             ContactName = iceName,
             ContactPhone = icePhone,
             ContactRelation = iceRelation,
-            Gender = gender
+            Gender = gender,
+            Certificate = int.TryParse(certificateNr, out var cert) ? cert : 0,
         };
+        response.Cleanup();
+        return response;
     }
 }

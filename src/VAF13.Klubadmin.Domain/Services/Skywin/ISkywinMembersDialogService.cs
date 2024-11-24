@@ -4,5 +4,5 @@ namespace VAF13.Klubadmin.Domain.Services.Skywin;
 
 public interface ISkywinMembersDialogService
 {
-    void InsertData(PersonDetails person);
+    void InsertData(PersonDetailsResponse person);
 }
