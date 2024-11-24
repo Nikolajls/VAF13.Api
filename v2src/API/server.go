@@ -13,7 +13,7 @@ func Serve() {
 	r.Use(middleware.APIKeyMiddleware)
 
 	r.Route("/api/Member", func(r chi.Router) {
-		r.Get("/Person", handlers.GetPerson)       // ?personId=2080&club=VAF
+		r.Get("/Person", handlers.GetPerson)       // ?personId=2080
 		r.Get("/Search", handlers.GetSearch)       //?name=Nikolaj
 		r.Get("/SearchAll", handlers.GetSearchAll) //?name = Nikolaj
 	})

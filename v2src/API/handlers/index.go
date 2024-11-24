@@ -11,7 +11,6 @@ import (
 
 func GetPerson(w http.ResponseWriter, request *http.Request) {
 	personIdString := request.URL.Query().Get("personId")
-	club := request.URL.Query().Get("club")
 	if personIdString == "" {
 		http.Error(w, "Missing query parameter 'personId'", http.StatusBadRequest)
 		return
@@ -23,7 +22,7 @@ func GetPerson(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	personDetails, err := Klubadmin.GetPerson(personId, club)
+	personDetails, err := Klubadmin.GetPerson(personId)
 
 	if err != nil {
 		fmt.Printf("Unable to do GetPerson for %v\nError:%v\n", personId, err)

@@ -38,12 +38,12 @@ func traverse(n *html.Node, id string) *html.Node {
 	return nil
 }
 
-func getElementById(n *html.Node, id string) *html.Node {
+func GetElementById(n *html.Node, id string) *html.Node {
 	return traverse(n, id)
 }
 
 func GetElementAttributeValue(n *html.Node, id string, key string) string {
-	element := getElementById(n, id)
+	element := GetElementById(n, id)
 	attributeValue, _ := GetAttribute(element, key)
 
 	return attributeValue

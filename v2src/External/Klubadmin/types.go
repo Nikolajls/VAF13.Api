@@ -29,37 +29,37 @@ type SearchResultPerson struct {
 }
 
 type SearchResultResponse struct {
-	Name        string `json:"Name"`
-	Club        string `json:"Club"`
-	DateAdded   string `json:"DateAdded"`
-	DateRemoved string `json:"DateRemoved"`
-	Address     string `json:"Address"`
+	Name        string `json:"name"`
+	Club        string `json:"club"`
+	DateAdded   string `json:"dateAdded"`
+	DateRemoved string `json:"dateRemoved"`
+	Address     string `json:"address"`
 	DFUNo       int    `json:"DFUNo"`
-	Birthday    string `json:"Birthday"`
-	Phone       string `json:"Phone"`
-	Email       string `json:"Email"`
-	Type        string `json:"Type"`
-	Certificate int    `json:"Certificate"`
-	Id          int    `json:"Id"`
+	Birthday    string `json:"birthday"`
+	Phone       string `json:"phone"`
+	Email       string `json:"email"`
+	Type        string `json:"type"`
+	Certificate int    `json:"certificate"`
+	Id          int    `json:"id"`
 }
 
 type PersonResponse struct {
-	Id              string `json:"Id"`
-	FirstName       string `json:"FirstName"`
-	LastName        string `json:"LastName"`
-	Address         string `json:"Address"`
-	City            string `json:"City"`
-	Zip             string `json:"Zip"`
-	Country         string `json:"Country"`
-	Mail            string `json:"Mail"`
-	Phone           string `json:"Phone"`
-	Birthday        string `json:"Birthday"`
-	Club            string `json:"Club"`
-	ContactRelation string `json:"ContactRelation"`
-	ContactName     string `json:"ContactName"`
-	ContactPhone    string `json:"ContactPhone"`
-	Gender          string `json:"Gender"`
-	Certificate     string `json:"Certificate"`
+	Id              int    `json:"id"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
+	Address         string `json:"address"`
+	City            string `json:"city"`
+	Zip             string `json:"zip"`
+	Country         string `json:"country"`
+	Email           string `json:"email"`
+	Phone           string `json:"phone"`
+	Birthday        string `json:"birthday"`
+	Club            string `json:"club"`
+	ContactRelation string `json:"contactRelation"`
+	ContactName     string `json:"contactName"`
+	ContactPhone    string `json:"contactPhone"`
+	Gender          string `json:"gender"`
+	Certificate     int    `json:"certificate"`
 }
 
 type SearchResultCleanUp interface {
@@ -91,8 +91,8 @@ func (result *PersonResponse) CleanupResult() {
 	if result.Zip == "(skjult)" {
 		result.Zip = ""
 	}
-	if result.Mail == "(skjult)" {
-		result.Mail = ""
+	if result.Email == "(skjult)" {
+		result.Email = ""
 	}
 	if result.Phone == "(skjult)" {
 		result.Phone = ""

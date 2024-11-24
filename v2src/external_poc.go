@@ -18,7 +18,7 @@ func ExternalPocTest() {
 		}
 		fmt.Println("===========")
 		searchFirst := search[0]
-		person, err := Klubadmin.GetPerson(searchFirst.Id, searchFirst.Club)
+		person, err := Klubadmin.GetPerson(searchFirst.Id)
 		fmt.Printf("GetPerson for:%+v\nResult:%+v\nErr:%v\n", searchFirst, person, err)
 
 	}

@@ -4,6 +4,7 @@ import (
 	"VAF13/Helpers"
 	"bytes"
 	"fmt"
+	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html"
 	"net/http"
 	"net/url"
@@ -84,7 +85,7 @@ func fetchDetail(person SearchResultResponse, wg *sync.WaitGroup, semaphore chan
 	semaphore <- struct{}{}
 	defer func() { <-semaphore }() // Release the semaphore slot
 
-	personResult, err := GetPerson(person.Id, person.Club)
+	personResult, err := GetPerson(person.Id)
 	if err != nil {
 		errors <- err
 		return
@@ -143,8 +144,7 @@ func Search(name string) ([]SearchResultResponse, error) {
 	return personsResponse, nil
 }
 
-func GetPerson(personId int, personClub string) (*PersonResponse, error) {
-
+func GetPerson(personId int) (*PersonResponse, error) {
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
 		"User-Agent":   userAgent,
@@ -173,7 +173,7 @@ func GetPerson(personId int, personClub string) (*PersonResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	resultingPerson, err := convertHtmlPersonToPerson(personIdString, personClub, personHtmlDetails)
+	resultingPerson, err := convertHtmlPersonToPerson(personId, personHtmlDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func GetPerson(personId int, personClub string) (*PersonResponse, error) {
 	return resultingPerson, nil
 }
 
-func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDetails string) (*PersonResponse, error) {
+func convertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error) {
 	doc, err := html.Parse(strings.NewReader(personHtmlDetails))
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse html to html node")
@@ -191,23 +191,35 @@ func convertHtmlPersonToPerson(personId string, personClub string, personHtmlDet
 	var fullName string = Helpers.GetElementAttributeValue(doc, "person_firstname", "value")
 	nameSplit := strings.Split(fullName, " ")
 
+	//Certificate
+	certificateValue := Helpers.GetElementAttributeValue(doc, "certificateNr_3", "data-orgvalue")
+	certificate := 0
+	if c, err := strconv.Atoi(certificateValue); err == nil {
+		certificate = c
+	}
+
+	// Club
+	clubElement := Helpers.GetElementById(doc, "currentMembershipsTable")
+	clubNodenode := htmlquery.FindOne(clubElement, "//tbody/tr[1]/td[1]")
+	clubText := htmlquery.InnerText(clubNodenode)
+
 	var result PersonResponse = PersonResponse{
 		Id:              personId,
 		FirstName:       nameSplit[0],
 		LastName:        strings.Join(nameSplit[1:], " "),
 		Address:         Helpers.GetElementAttributeValue(doc, "person_address", "value"),
 		Zip:             Helpers.GetElementAttributeValue(doc, "person_zip", "value"),
-		Club:            personClub,
+		Club:            clubText,
 		City:            Helpers.GetElementAttributeValue(doc, "person_city", "value"),
 		Country:         Helpers.GetElementAttributeValue(doc, "person_country", "data-orgvalue"),
-		Mail:            Helpers.GetElementAttributeValue(doc, "person_mail", "value"),
+		Email:           Helpers.GetElementAttributeValue(doc, "person_mail", "value"),
 		Phone:           Helpers.GetElementAttributeValue(doc, "person_cellular", "value"),
 		Birthday:        Helpers.GetElementAttributeValue(doc, "person_birthdayDate_inverted", "value"),
 		ContactName:     Helpers.GetElementAttributeValue(doc, "relative_firstname", "value"),
 		ContactPhone:    Helpers.GetElementAttributeValue(doc, "relative_cellular", "value"),
 		ContactRelation: Helpers.GetElementAttributeValue(doc, "person_relativerelation", "value"),
 		Gender:          Helpers.GetElementAttributeValue(doc, "gender", "data-orgvalue"),
-		Certificate:     Helpers.GetElementAttributeValue(doc, "certificateNr_3", "data-orgvalue"),
+		Certificate:     certificate,
 	}
 	return &result, nil
 }
