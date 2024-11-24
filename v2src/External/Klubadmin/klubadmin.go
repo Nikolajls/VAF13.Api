@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/antchfx/htmlquery"
+	"go.uber.org/zap"
 	"golang.org/x/net/html"
 	"net/http"
 	"net/url"
@@ -14,17 +15,36 @@ import (
 	"time"
 )
 
+type Klubadmin_integration struct {
+	logger        *zap.Logger
+	klubadminAuth *Klubadmin_integration_auth
+	baseurl       string
+	client        *http.Client
+}
+
+func NewKlubadmin_integration(logger *zap.Logger, klubadmin_auth_integration *Klubadmin_integration_auth) *Klubadmin_integration {
+	client := &http.Client{
+		Transport: &AuthMiddleware{
+			klubadminAuth: klubadmin_auth_integration,
+			Transport:     http.DefaultTransport, // Use default transport as the base
+		},
+	}
+
+	service := Klubadmin_integration{
+		logger:        logger,
+		klubadminAuth: klubadmin_auth_integration,
+		client:        client,
+	}
+
+	return &service
+}
+
 var baseUrl string = "https://klubadmin.dfu.dk/klubadmin/pages"
 var userAgent string = "VAFAPI/2.0"
 
 type AuthMiddleware struct {
-	Transport http.RoundTripper
-}
-
-var client *http.Client = &http.Client{
-	Transport: &AuthMiddleware{
-		Transport: http.DefaultTransport, // Use default transport as the base
-	},
+	Transport     http.RoundTripper
+	klubadminAuth *Klubadmin_integration_auth
 }
 
 // RoundTrip safely clones the request and adds the Authorization header.
@@ -32,7 +52,7 @@ func (a *AuthMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Clone the request to avoid modifying the original
 	clonedReq := req.Clone(req.Context())
 
-	phpSessionId, err := Authenticate()
+	phpSessionId, err := a.klubadminAuth.Authenticate()
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +64,10 @@ func (a *AuthMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 	return a.Transport.RoundTrip(clonedReq)
 }
 
-func SearchAll(name string) ([]PersonResponse, error) {
+func (service *Klubadmin_integration) SearchAll(name string) ([]PersonResponse, error) {
 	var resultSlice []PersonResponse
 
-	persons, err := Search(name)
+	persons, err := service.Search(name)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +80,7 @@ func SearchAll(name string) ([]PersonResponse, error) {
 
 	for _, person := range persons {
 		wg.Add(1)
-		go fetchDetail(person, &wg, semaphore, results, errors)
+		go fetchDetail(service, person, &wg, semaphore, results, errors)
 	}
 
 	wg.Wait() // Wait for all goroutines to complete
@@ -78,14 +98,14 @@ func SearchAll(name string) ([]PersonResponse, error) {
 	return resultSlice, nil
 }
 
-func fetchDetail(person SearchResultResponse, wg *sync.WaitGroup, semaphore chan struct{}, results chan<- PersonResponse, errors chan<- error) {
+func fetchDetail(service *Klubadmin_integration, person SearchResultResponse, wg *sync.WaitGroup, semaphore chan struct{}, results chan<- PersonResponse, errors chan<- error) {
 	defer wg.Done()
 
 	// Acquire a semaphore slot
 	semaphore <- struct{}{}
 	defer func() { <-semaphore }() // Release the semaphore slot
 
-	personResult, err := GetPerson(person.Id)
+	personResult, err := service.GetPerson(person.Id)
 	if err != nil {
 		errors <- err
 		return
@@ -95,7 +115,7 @@ func fetchDetail(person SearchResultResponse, wg *sync.WaitGroup, semaphore chan
 	results <- *personResult
 }
 
-func Search(name string) ([]SearchResultResponse, error) {
+func (service *Klubadmin_integration) Search(name string) ([]SearchResultResponse, error) {
 	now := time.Now()
 	epochSeconds := now.Unix()
 	nameEscaped := url.QueryEscape(name)
@@ -109,7 +129,7 @@ func Search(name string) ([]SearchResultResponse, error) {
 		"User-Agent": userAgent,
 	}
 
-	var resp, _, err = Helpers.MakeHttpRequest(client, "GET", requestUrl, headers, nil)
+	var resp, _, err = Helpers.MakeHttpRequest(service.client, "GET", requestUrl, headers, nil)
 
 	if err != nil {
 		return make([]SearchResultResponse, 0), fmt.Errorf("error making SearchPerson request: %v", err)
@@ -144,7 +164,7 @@ func Search(name string) ([]SearchResultResponse, error) {
 	return personsResponse, nil
 }
 
-func GetPerson(personId int) (*PersonResponse, error) {
+func (service *Klubadmin_integration) GetPerson(personId int) (*PersonResponse, error) {
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
 		"User-Agent":   userAgent,
@@ -158,7 +178,7 @@ func GetPerson(personId int) (*PersonResponse, error) {
 	body := bodyT.Bytes()
 
 	requestUrl := fmt.Sprintf("%s%s", baseUrl, "/ajax.php")
-	var resp, _, err = Helpers.MakeHttpRequest(client, "POST", requestUrl, headers, body)
+	var resp, _, err = Helpers.MakeHttpRequest(service.client, "POST", requestUrl, headers, body)
 
 	if err != nil {
 		return nil, fmt.Errorf("error making GetPerson request for personId: %v", personId)
@@ -195,6 +215,7 @@ func convertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonR
 	certificateValue := Helpers.GetElementAttributeValue(doc, "certificateNr_3", "data-orgvalue")
 	certificate := 0
 	if c, err := strconv.Atoi(certificateValue); err == nil {
+
 		certificate = c
 	}
 
