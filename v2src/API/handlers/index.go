@@ -12,10 +12,10 @@ import (
 
 type MemberHandlers struct {
 	logger    *zap.Logger
-	klubadmin *Klubadmin.Klubadmin_integration
+	klubadmin *Klubadmin.KlubadminService
 }
 
-func NewMemberHandlers(logger *zap.Logger, integration *Klubadmin.Klubadmin_integration) *MemberHandlers {
+func NewMemberHandlers(logger *zap.Logger, integration *Klubadmin.KlubadminService) *MemberHandlers {
 	return &MemberHandlers{
 		logger:    logger,
 		klubadmin: integration,
@@ -40,7 +40,7 @@ func (s *MemberHandlers) GetPerson(w http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	personDetails, err := s.klubadmin.GetPerson(personId)
+	personDetails, err := (*s.klubadmin).GetPerson(personId)
 
 	if err != nil {
 		fmt.Printf("Unable to do GetPerson for %v\nError:%v\n", personId, err)
@@ -58,7 +58,7 @@ func (s *MemberHandlers) GetSearch(w http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	persons, err := s.klubadmin.Search(searchName)
+	persons, err := (*s.klubadmin).Search(searchName)
 
 	if err != nil {
 		fmt.Printf("Unable to do search for %v\nError:%v\n", searchName, err)
@@ -81,7 +81,7 @@ func (s *MemberHandlers) GetSearchAll(w http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	persons, err := s.klubadmin.SearchAll(searchName)
+	persons, err := (*s.klubadmin).SearchAll(searchName)
 	if err != nil {
 		fmt.Printf("Unable to do search all for %v\nError:%v\n", searchName, err)
 		http.Error(w, "Internal Server Error doing SearchAll", http.StatusInternalServerError)

@@ -15,6 +15,12 @@ import (
 	"time"
 )
 
+type KlubadminService interface {
+	Search(name string) ([]SearchResultResponse, error)
+	SearchAll(name string) ([]PersonResponse, error)
+	GetPerson(personId int) (*PersonResponse, error)
+}
+
 type Klubadmin_integration struct {
 	logger        *zap.Logger
 	klubadminAuth *Klubadmin_integration_auth
@@ -22,7 +28,7 @@ type Klubadmin_integration struct {
 	client        *http.Client
 }
 
-func NewKlubadmin_integration(logger *zap.Logger, klubadmin_auth_integration *Klubadmin_integration_auth) *Klubadmin_integration {
+func NewDefaultKlubadminService(logger *zap.Logger, klubadmin_auth_integration *Klubadmin_integration_auth) KlubadminService {
 	client := &http.Client{
 		Transport: &AuthMiddleware{
 			klubadminAuth: klubadmin_auth_integration,
@@ -71,13 +77,13 @@ func (service *Klubadmin_integration) SearchAll(name string) ([]PersonResponse, 
 	if err != nil {
 		return nil, err
 	}
-
 	personCount := len(persons)
 	var wg sync.WaitGroup
 	results := make(chan PersonResponse, personCount)
 	errors := make(chan error, personCount)
 	semaphore := make(chan struct{}, 10)
 
+	start := time.Now()
 	for _, person := range persons {
 		wg.Add(1)
 		go fetchDetail(service, person, &wg, semaphore, results, errors)
@@ -92,9 +98,11 @@ func (service *Klubadmin_integration) SearchAll(name string) ([]PersonResponse, 
 	}
 
 	for err := range errors { // Process errors
+		service.logger.Error("SearchAll Failed to do search for specific person", zap.Error(err))
 		fmt.Println("Errors for SearchAll", err)
 	}
 
+	service.logger.Info(fmt.Sprintf("Total time taken:%v", time.Since(start).Seconds()))
 	return resultSlice, nil
 }
 
@@ -129,6 +137,7 @@ func (service *Klubadmin_integration) Search(name string) ([]SearchResultRespons
 		"User-Agent": userAgent,
 	}
 
+	timeNow := time.Now()
 	var resp, _, err = Helpers.MakeHttpRequest(service.client, "GET", requestUrl, headers, nil)
 
 	if err != nil {
@@ -139,8 +148,14 @@ func (service *Klubadmin_integration) Search(name string) ([]SearchResultRespons
 		return make([]SearchResultResponse, 0), fmt.Errorf("search for person returned non successful statuscode")
 	}
 
-	searchResponse, _, _ := Helpers.ParseJSONResponse[SearchResult](resp)
-	personsResponse := make([]SearchResultResponse, len(searchResponse.Data))
+	searchResponse, _, err := Helpers.ParseJSONResponse[SearchResult](resp)
+	if err != nil {
+		return make([]SearchResultResponse, 0), fmt.Errorf("Error parsing response to json for search", err)
+	}
+
+	searchPersonCount := len(searchResponse.Data)
+	service.logger.Info(fmt.Sprintf("Search time for %v took %v seconds and gave %v persons", name, time.Since(timeNow).Seconds(), searchPersonCount))
+	personsResponse := make([]SearchResultResponse, searchPersonCount)
 	for index := range searchResponse.Data {
 		ptr := &searchResponse.Data[index]
 		ptr.CleanupResult()

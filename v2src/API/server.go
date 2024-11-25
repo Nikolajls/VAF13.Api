@@ -50,9 +50,10 @@ func Serve() {
 	r.Use(middleware.NewAPIKeyMiddleware(logger).Add)
 
 	klubadmin_auth := Klubadmin.NewKlubadmin_integration_auth(logger)
-	klubadmin := Klubadmin.NewKlubadmin_integration(logger, klubadmin_auth)
 
-	memberHandlers := handlers.NewMemberHandlers(logger, klubadmin)
+	klubadminService := Klubadmin.NewDefaultKlubadminService(logger, klubadmin_auth)
+
+	memberHandlers := handlers.NewMemberHandlers(logger, &klubadminService)
 	r.Route("/api/Member", func(r chi.Router) {
 		r.Get("/Person", memberHandlers.GetPerson)       // ?personId=2080
 		r.Get("/Search", memberHandlers.GetSearch)       //?name=Nikolaj
