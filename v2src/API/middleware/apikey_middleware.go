@@ -1,14 +1,25 @@
 package middleware
 
 import (
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 )
 
 var apiKey = os.Getenv("API_KEY")
 
-func APIKeyMiddleware(next http.Handler) http.Handler {
+type APIKeyMiddleware struct {
+	logger *zap.Logger
+}
+
+func NewAPIKeyMiddleware(logger *zap.Logger) *APIKeyMiddleware {
+	return &APIKeyMiddleware{logger: logger}
+}
+func (s *APIKeyMiddleware) Add(next http.Handler) http.Handler {
+	s.logger.Debug("Added APIKeyMiddleware")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.logger.Debug("Running APIKeyMiddleware")
 
 		apiKeyFromHeader := r.Header.Get("X-API-Key")
 		if apiKeyFromHeader == "" {

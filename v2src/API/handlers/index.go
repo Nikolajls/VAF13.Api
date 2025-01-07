@@ -5,11 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/render"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
 
-func GetPerson(w http.ResponseWriter, request *http.Request) {
+type MemberHandlers struct {
+	logger    *zap.Logger
+	klubadmin *Klubadmin.KlubadminService
+}
+
+func NewMemberHandlers(logger *zap.Logger, integration *Klubadmin.KlubadminService) *MemberHandlers {
+	return &MemberHandlers{
+		logger:    logger,
+		klubadmin: integration,
+	}
+}
+
+func (s *MemberHandlers) GetPerson(w http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	correlationID, _ := ctx.Value("correlationID").(string)
+	logger := s.logger.With(zap.String("correlation_id", correlationID))
+
 	personIdString := request.URL.Query().Get("personId")
 	if personIdString == "" {
 		http.Error(w, "Missing query parameter 'personId'", http.StatusBadRequest)
@@ -18,11 +35,12 @@ func GetPerson(w http.ResponseWriter, request *http.Request) {
 
 	personId, err := strconv.Atoi(personIdString)
 	if err != nil {
+		logger.Warn("Invalid query parameter for searching for person", zap.Int("personId", personId), zap.String("Error", err.Error()))
 		http.Error(w, "Invalid query parameter 'personId'", http.StatusBadRequest)
 		return
 	}
 
-	personDetails, err := Klubadmin.GetPerson(personId)
+	personDetails, err := (*s.klubadmin).GetPerson(personId)
 
 	if err != nil {
 		fmt.Printf("Unable to do GetPerson for %v\nError:%v\n", personId, err)
@@ -32,14 +50,15 @@ func GetPerson(w http.ResponseWriter, request *http.Request) {
 	render.JSON(w, request, personDetails)
 }
 
-func GetSearch(w http.ResponseWriter, request *http.Request) {
+func (s *MemberHandlers) GetSearch(w http.ResponseWriter, request *http.Request) {
+	s.logger.Info("GetSearch")
 	searchName := request.URL.Query().Get("name")
 	if searchName == "" {
 		http.Error(w, "Missing query parameter 'name'", http.StatusBadRequest)
 		return
 	}
 
-	persons, err := Klubadmin.Search(searchName)
+	persons, err := (*s.klubadmin).Search(searchName)
 
 	if err != nil {
 		fmt.Printf("Unable to do search for %v\nError:%v\n", searchName, err)
@@ -54,14 +73,15 @@ func GetSearch(w http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func GetSearchAll(w http.ResponseWriter, request *http.Request) {
+func (s *MemberHandlers) GetSearchAll(w http.ResponseWriter, request *http.Request) {
+	s.logger.Info("GetSearchAll")
 	searchName := request.URL.Query().Get("name")
 	if searchName == "" {
 		http.Error(w, "Missing query parameter 'name'", http.StatusBadRequest)
 		return
 	}
 
-	persons, err := Klubadmin.SearchAll(searchName)
+	persons, err := (*s.klubadmin).SearchAll(searchName)
 	if err != nil {
 		fmt.Printf("Unable to do search all for %v\nError:%v\n", searchName, err)
 		http.Error(w, "Internal Server Error doing SearchAll", http.StatusInternalServerError)
