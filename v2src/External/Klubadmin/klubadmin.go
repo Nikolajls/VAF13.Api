@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/antchfx/htmlquery"
 	"go.uber.org/zap"
-	"golang.org/x/net/html"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -150,7 +149,7 @@ func (service *Klubadmin_integration) Search(name string) ([]SearchResultRespons
 
 	searchResponse, _, err := Helpers.ParseJSONResponse[SearchResult](resp)
 	if err != nil {
-		return make([]SearchResultResponse, 0), fmt.Errorf("Error parsing response to json for search", err)
+		return make([]SearchResultResponse, 0), fmt.Errorf("Error parsing response to json for search %v", err)
 	}
 
 	searchPersonCount := len(searchResponse.Data)
@@ -218,7 +217,7 @@ func (service *Klubadmin_integration) GetPerson(personId int) (*PersonResponse, 
 }
 
 func convertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error) {
-	doc, err := html.Parse(strings.NewReader(personHtmlDetails))
+	doc, err := Helpers.GetHtmlNodeFromString(personHtmlDetails)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse html to html node")
 	}
@@ -235,11 +234,16 @@ func convertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonR
 	}
 
 	// Club
+	clubText := ""
 	clubElement := Helpers.GetElementById(doc, "currentMembershipsTable")
-	clubNodenode := htmlquery.FindOne(clubElement, "//tbody/tr[1]/td[1]")
-	clubText := htmlquery.InnerText(clubNodenode)
+	if clubElement != nil {
+		clubNodenode := htmlquery.FindOne(clubElement, "//tbody/tr[1]/td[1]")
+		if clubNodenode != nil {
+			clubText = htmlquery.InnerText(clubNodenode)
+		}
+	}
 
-	var result PersonResponse = PersonResponse{
+	result := PersonResponse{
 		Id:              personId,
 		FirstName:       nameSplit[0],
 		LastName:        strings.Join(nameSplit[1:], " "),
