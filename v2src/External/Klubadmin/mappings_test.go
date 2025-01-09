@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_convertHtmlPersonToPerson(t *testing.T) {
+func Test_ConvertHtmlPersonToPerson(t *testing.T) {
 	type args struct {
 		personId          int
 		personHtmlDetails string
@@ -98,7 +98,8 @@ func Test_convertHtmlPersonToPerson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := convertHtmlPersonToPerson(tt.args.personId, tt.args.personHtmlDetails)
+			service := &Mappings{}
+			got, err := service.ConvertHtmlPersonToPerson(tt.args.personId, tt.args.personHtmlDetails)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("convertHtmlPersonToPerson() error = %v, wantErr %v", err, tt.wantErr)
 				return
