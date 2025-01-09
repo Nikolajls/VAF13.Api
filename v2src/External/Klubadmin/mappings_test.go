@@ -98,7 +98,7 @@ func Test_ConvertHtmlPersonToPerson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &Mappings{}
+			service := &DefaultMappings{}
 			got, err := service.ConvertHtmlPersonToPerson(tt.args.personId, tt.args.personHtmlDetails)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("convertHtmlPersonToPerson() error = %v, wantErr %v", err, tt.wantErr)
@@ -106,6 +106,74 @@ func Test_ConvertHtmlPersonToPerson(t *testing.T) {
 			}
 			assert.EqualValues(t, tt.want, got)
 
+		})
+	}
+}
+
+func TestDefaultMappings_ConvertSearchResultToResponse(t *testing.T) {
+
+	successPerson := &SearchResultPerson{
+		DTRowClass:  "DTROW",
+		Name:        "Name",
+		Club:        "Club",
+		DateAdded:   "01-01-2000",
+		DateRemoved: "01-02-2000",
+		Address:     "Skydive Lane 123",
+		DFUNo:       3,
+		Birthday:    "01-01-1992",
+		Phone:       "404",
+		Email:       "404@tld.com",
+		Type:        "Skydiver",
+		Certificate: 2,
+		Id:          1,
+	}
+	type args struct {
+		ptr *SearchResultPerson
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *SearchResultResponse
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			args: args{
+				ptr: successPerson,
+			},
+			want: &SearchResultResponse{
+				Name:        successPerson.Name,
+				Club:        successPerson.Club,
+				DateAdded:   successPerson.DateAdded,
+				DateRemoved: successPerson.DateRemoved,
+				Address:     successPerson.Address,
+				DFUNo:       successPerson.DFUNo,
+				Birthday:    successPerson.Birthday,
+				Phone:       successPerson.Phone,
+				Email:       successPerson.Email,
+				Type:        successPerson.Type,
+				Certificate: successPerson.Certificate,
+				Id:          successPerson.Id,
+			},
+			wantErr: false,
+		}, {
+			name: "Fail due to nil",
+			args: args{
+				ptr: nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := &DefaultMappings{}
+			mappedPerson, err := service.ConvertSearchResultToResponse(tt.args.ptr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ConvertHtmlPersonToPerson() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.EqualValues(t, tt.want, mappedPerson)
 		})
 	}
 }

@@ -161,7 +161,10 @@ func (service *Integration) Search(name string) ([]SearchResultResponse, error) 
 	for index := range searchResponse.Data {
 		ptr := &searchResponse.Data[index]
 		ptr.CleanupResult()
-		personsResponse[index] = service.MappingService.ConvertSearchResultToResponse(ptr)
+
+		if mappedPerson, mappedError := service.MappingService.ConvertSearchResultToResponse(ptr); mappedError == nil && mappedPerson != nil {
+			personsResponse[index] = *mappedPerson
+		}
 	}
 
 	return personsResponse, nil

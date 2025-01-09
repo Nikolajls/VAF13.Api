@@ -9,18 +9,21 @@ import (
 )
 
 type MappingService interface {
-	ConvertSearchResultToResponse(person *SearchResultPerson) SearchResultResponse
+	ConvertSearchResultToResponse(person *SearchResultPerson) (*SearchResultResponse, error)
 	ConvertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error)
 }
 
-type Mappings struct {
+type DefaultMappings struct {
 }
 
 func NewDefaultMappingService() MappingService {
-	return &Mappings{}
+	return &DefaultMappings{}
 }
-func (service *Mappings) ConvertSearchResultToResponse(ptr *SearchResultPerson) SearchResultResponse {
-	mapped := SearchResultResponse{
+func (service *DefaultMappings) ConvertSearchResultToResponse(ptr *SearchResultPerson) (*SearchResultResponse, error) {
+	if ptr == nil {
+		return nil, fmt.Errorf("unable to convert search result to response")
+	}
+	mapped := &SearchResultResponse{
 		Name:        ptr.Name,
 		Club:        ptr.Club,
 		DateAdded:   ptr.DateAdded,
@@ -35,10 +38,10 @@ func (service *Mappings) ConvertSearchResultToResponse(ptr *SearchResultPerson) 
 		Id:          ptr.Id,
 	}
 
-	return mapped
+	return mapped, nil
 }
 
-func (service *Mappings) ConvertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error) {
+func (service *DefaultMappings) ConvertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error) {
 	doc, err := Helpers.GetHtmlNodeFromString(personHtmlDetails)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse html to html node")
