@@ -3,6 +3,7 @@ package Klubadmin
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"io/ioutil"
@@ -20,24 +21,33 @@ func (mockService *MockAuthService) Authenticate() (string, error) {
 }
 
 type MockMappingService struct {
-	//MockConvertSearchResultToResponseResult *SearchResultResponse
+	MockConvertSearchResultToResponseArgument *SearchResultPerson
+	MockConvertSearchResultToResponseResult   *SearchResultResponse
+
+	MockConvertHtmlPersonToPersonArgumentPersonId int
+	MockConvertHtmlPersonToPersonArgumentHtml     string
+	MockConvertHtmlPersonToPersonResult           *PersonResponse
 }
 
 func (service *MockMappingService) ConvertSearchResultToResponse(person *SearchResultPerson) (*SearchResultResponse, error) {
-	return &SearchResultResponse{
-		Name: person.Name,
-	}, nil
+	service.MockConvertSearchResultToResponseArgument = person
+	if person == nil {
+		return nil, fmt.Errorf("person cannot be null")
+	}
+	return service.MockConvertSearchResultToResponseResult, nil
 }
 
 func (service *MockMappingService) ConvertHtmlPersonToPerson(personId int, personHtmlDetails string) (*PersonResponse, error) {
-	return nil, nil
+	service.MockConvertHtmlPersonToPersonArgumentPersonId = personId
+	service.MockConvertHtmlPersonToPersonArgumentHtml = personHtmlDetails
+
+	return service.MockConvertHtmlPersonToPersonResult, nil
 }
 
 func Test_Search(t *testing.T) {
 	var authMockService AuthService = &MockAuthService{returnValue: "TEST"}
-	var mappingMockService MappingService = &MockMappingService{}
 
-	searchResultPerson := SearchResultPerson{
+	searchResultPerson := &SearchResultPerson{
 		DTRowClass:  "",
 		Name:        "Nikolaj",
 		Club:        "",
@@ -57,8 +67,17 @@ func Test_Search(t *testing.T) {
 		Draw:            0,
 		RecordsTotal:    1,
 		RecordsFiltered: 1,
-		Data:            []SearchResultPerson{searchResultPerson},
+		Data:            []SearchResultPerson{*searchResultPerson},
 	}
+
+	expectedPersonResult := &SearchResultResponse{
+		Name: searchResultPerson.Name,
+	}
+
+	mappingMock := &MockMappingService{
+		MockConvertSearchResultToResponseResult: expectedPersonResult,
+	}
+	var mappingMockService MappingService = mappingMock
 
 	jsonData, err := json.Marshal(responseObj)
 	if err != nil {
@@ -78,8 +97,19 @@ func Test_Search(t *testing.T) {
 		return httpResponse
 	}))
 
+	//Act
 	res, err := service.Search("Nikolaj")
+
+	//Assert
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
+	assert.NotEmpty(t, res)
+
+	assert.EqualValues(t, []SearchResultResponse{*expectedPersonResult}, res, "The resulting person search did not match the expected")
+	assert.EqualValues(t, searchResultPerson, mappingMock.MockConvertSearchResultToResponseArgument)
+
+	//Verify request
 	assert.NotNil(t, actualRequest)
+	//Verify auth
+	//Verify request
 }

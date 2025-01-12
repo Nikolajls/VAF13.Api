@@ -152,7 +152,7 @@ func (service *Integration) Search(name string) ([]SearchResultResponse, error) 
 
 	searchResponse, _, err := Helpers.ParseJSONResponse[SearchResult](resp)
 	if err != nil {
-		return make([]SearchResultResponse, 0), fmt.Errorf("Error parsing response to json for search %v", err)
+		return make([]SearchResultResponse, 0), fmt.Errorf("error parsing response to json for search %v", err)
 	}
 
 	searchPersonCount := len(searchResponse.Data)
