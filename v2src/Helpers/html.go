@@ -1,7 +1,9 @@
 package Helpers
 
 import (
+	"fmt"
 	"golang.org/x/net/html"
+	"strings"
 )
 
 func GetAttribute(n *html.Node, key string) (string, bool) {
@@ -44,7 +46,18 @@ func GetElementById(n *html.Node, id string) *html.Node {
 
 func GetElementAttributeValue(n *html.Node, id string, key string) string {
 	element := GetElementById(n, id)
+	if element == nil {
+		return ""
+	}
 	attributeValue, _ := GetAttribute(element, key)
 
 	return attributeValue
+}
+
+func GetHtmlNodeFromString(htmlString string) (*html.Node, error) {
+	if htmlString == "" {
+		return nil, fmt.Errorf("htmlString is empty unable to parse to htmlnode")
+	}
+	doc, err := html.Parse(strings.NewReader(htmlString))
+	return doc, err
 }

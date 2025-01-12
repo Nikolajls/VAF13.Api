@@ -12,10 +12,10 @@ import (
 
 type MemberHandlers struct {
 	logger    *zap.Logger
-	klubadmin *Klubadmin.KlubadminService
+	klubadmin *Klubadmin.Service
 }
 
-func NewMemberHandlers(logger *zap.Logger, integration *Klubadmin.KlubadminService) *MemberHandlers {
+func NewMemberHandlers(logger *zap.Logger, integration *Klubadmin.Service) *MemberHandlers {
 	return &MemberHandlers{
 		logger:    logger,
 		klubadmin: integration,

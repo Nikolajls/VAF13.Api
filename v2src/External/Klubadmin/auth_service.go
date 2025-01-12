@@ -12,18 +12,38 @@ import (
 	"time"
 )
 
-type Klubadmin_integration_auth struct {
-	logger *zap.Logger
+type AuthService interface {
+	Authenticate() (string, error)
 }
 
-func NewKlubadmin_integration_auth(logger *zap.Logger) *Klubadmin_integration_auth {
-	return &Klubadmin_integration_auth{logger: logger}
+type AuthIntegration struct {
+	logger           *zap.Logger
+	authClient       *http.Client
+	storedPhpSession *SafeString
+	username         string
+	password         string
+	baseUrl          string
+	userAgent        string
 }
 
-var authClient *http.Client = &http.Client{}
-var storedPhpSession *SafeString = &SafeString{}
-var username string = os.Getenv("DfuConfiguration_Username")
-var password string = os.Getenv("DfuConfiguration_Password")
+func NewAuthService(logger *zap.Logger, httpClientForAuth *http.Client) AuthService {
+	if httpClientForAuth == nil {
+		httpClientForAuth = &http.Client{}
+	}
+
+	service := AuthIntegration{
+		username:         os.Getenv("DfuConfiguration_Username"),
+		password:         os.Getenv("DfuConfiguration_Password"),
+		storedPhpSession: &SafeString{},
+		logger:           logger,
+		authClient:       httpClientForAuth,
+		baseUrl:          "https://klubadmin.dfu.dk/klubadmin/pages",
+		userAgent:        "VAFAPI/2.0",
+	}
+	a := &service
+
+	return a
+}
 
 type SafeString struct {
 	mu         sync.RWMutex
@@ -44,8 +64,8 @@ func (s *SafeString) Get() (string, time.Time) {
 	return s.val, s.cachedTime
 }
 
-func (s *Klubadmin_integration_auth) Authenticate() (string, error) {
-	readSession, cachedTime := storedPhpSession.Get()
+func (s *AuthIntegration) Authenticate() (string, error) {
+	readSession, cachedTime := s.storedPhpSession.Get()
 	if readSession != "" {
 		cacheDiffMinutes := time.Now().Sub(cachedTime).Minutes()
 		if cacheDiffMinutes < 10 {
@@ -59,17 +79,17 @@ func (s *Klubadmin_integration_auth) Authenticate() (string, error) {
 
 	headers := map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-		"User-Agent":   userAgent,
+		"User-Agent":   s.userAgent,
 	}
 	data := url.Values{}
-	data.Set("loginid", username)
-	data.Set("password", password)
+	data.Set("loginid", s.username)
+	data.Set("password", s.password)
 	data.Set("action", "systemlogin")
 	bodyT := bytes.NewBufferString(data.Encode())
 	body := bodyT.Bytes()
 
-	requestUrl := fmt.Sprintf("%s%s", baseUrl, "/")
-	var resp, _, err = Helpers.MakeHttpRequest(authClient, "POST", requestUrl, headers, body)
+	requestUrl := fmt.Sprintf("%s%s", s.baseUrl, "/")
+	var resp, _, err = Helpers.MakeHttpRequest(s.authClient, "POST", requestUrl, headers, body)
 
 	if err != nil {
 		return "", fmt.Errorf("Error making request: %v", err)
@@ -92,12 +112,13 @@ func (s *Klubadmin_integration_auth) Authenticate() (string, error) {
 		return "", fmt.Errorf("Unable to signin")
 	}
 	s.logger.Info("Successfully logged in")
+
 	//Extract PhpSessionId
 	setCookieHeader := resp.Header.Get("Set-Cookie")
 	cookieMap := Helpers.ConvertHttpHeaderValueToMap(setCookieHeader)
 	if value, exists := cookieMap["PHPSESSID"]; exists {
 		s.logger.Info("Setting cached authentication")
-		storedPhpSession.Set(value, time.Now())
+		s.storedPhpSession.Set(value, time.Now())
 		return value, nil
 	} else {
 		s.logger.Error("Authentication succeeded but no PHP session id")

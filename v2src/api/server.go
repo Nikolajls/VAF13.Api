@@ -49,11 +49,11 @@ func Serve() {
 	r.Use(middleware.NewRequestLoggingMiddleware(logger).Add)
 	r.Use(middleware.NewAPIKeyMiddleware(logger).Add)
 
-	klubadmin_auth := Klubadmin.NewKlubadmin_integration_auth(logger)
+	KlubAdminAuthService := Klubadmin.NewAuthService(logger, &http.Client{})
+	KlubAdminMappingService := Klubadmin.NewDefaultMappingService()
+	KlubAdminService := Klubadmin.NewDefaultKlubAdminService(logger, KlubAdminAuthService, KlubAdminMappingService, http.DefaultTransport)
 
-	klubadminService := Klubadmin.NewDefaultKlubadminService(logger, klubadmin_auth)
-
-	memberHandlers := handlers.NewMemberHandlers(logger, &klubadminService)
+	memberHandlers := handlers.NewMemberHandlers(logger, &KlubAdminService)
 	r.Route("/api/Member", func(r chi.Router) {
 		r.Get("/Person", memberHandlers.GetPerson)       // ?personId=2080
 		r.Get("/Search", memberHandlers.GetSearch)       //?name=Nikolaj
