@@ -32,8 +32,8 @@ func NewAuthService(logger *zap.Logger, httpClientForAuth *http.Client) AuthServ
 	}
 
 	service := AuthIntegration{
-		username:         os.Getenv("DfuConfiguration_Username"),
-		password:         os.Getenv("DfuConfiguration_Password"),
+		username:         os.Getenv("DfuConfiguration__Username"),
+		password:         os.Getenv("DfuConfiguration__Password"),
 		storedPhpSession: &SafeString{},
 		logger:           logger,
 		authClient:       httpClientForAuth,
