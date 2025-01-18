@@ -2,8 +2,8 @@
 
 namespace VAF13.Klubadmin.Domain.Services.VAFapi
 {
-    public interface IVafApiIntegration
-    {
-        Task<List<PersonDetailsResponse>> SearchAll(string name);
-    }
+  public interface IVafApiIntegration
+  {
+    Task<List<PersonDetailsResponse>> SearchAll(string name);
+  }
 }

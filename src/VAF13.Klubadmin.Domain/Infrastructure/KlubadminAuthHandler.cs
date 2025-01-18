@@ -5,29 +5,29 @@ namespace VAF13.Klubadmin.Domain.Infrastructure;
 
 public class KlubadminAuthHandler : DelegatingHandler
 {
-  private readonly ILogger<KlubadminAuthHandler> _logger;
-  private readonly IKlubAdminAuthService _authService;
+    private readonly ILogger<KlubadminAuthHandler> _logger;
+    private readonly IKlubAdminAuthService _authService;
 
-  public KlubadminAuthHandler(ILogger<KlubadminAuthHandler> logger, IKlubAdminAuthService authService)
-  {
-    _logger = logger;
-    _authService = authService;
-  }
-
-  private async Task ModifyRequest(HttpRequestMessage request, CancellationToken cancellationToken)
-  {
-    var authId = await _authService.Authenticate();
-    if (string.IsNullOrEmpty(authId))
+    public KlubadminAuthHandler(ILogger<KlubadminAuthHandler> logger, IKlubAdminAuthService authService)
     {
-      throw new ArgumentNullException(nameof(authId));
+        _logger = logger;
+        _authService = authService;
     }
 
-    request.Headers.Add("Cookie", $"PHPSESSID={authId}");
-  }
+    private async Task ModifyRequest(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var authId = await _authService.Authenticate();
+        if (string.IsNullOrEmpty(authId))
+        {
+            throw new ArgumentNullException(nameof(authId));
+        }
 
-  protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-  {
-    await ModifyRequest(request, cancellationToken).ConfigureAwait(false);
-    return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-  }
+        request.Headers.Add("Cookie", $"PHPSESSID={authId}");
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        await ModifyRequest(request, cancellationToken).ConfigureAwait(false);
+        return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+    }
 }
