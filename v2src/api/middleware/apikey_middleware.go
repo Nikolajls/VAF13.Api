@@ -6,14 +6,16 @@ import (
 	"os"
 )
 
-var apiKey = os.Getenv("API_KEY")
-
 type APIKeyMiddleware struct {
 	logger *zap.Logger
+	apiKey string
 }
 
 func NewAPIKeyMiddleware(logger *zap.Logger) *APIKeyMiddleware {
-	return &APIKeyMiddleware{logger: logger}
+	return &APIKeyMiddleware{
+		logger: logger,
+		apiKey: os.Getenv("ApiConfiguration__ApiKey"),
+	}
 }
 func (s *APIKeyMiddleware) Add(next http.Handler) http.Handler {
 	s.logger.Debug("Added APIKeyMiddleware")
@@ -26,12 +28,12 @@ func (s *APIKeyMiddleware) Add(next http.Handler) http.Handler {
 			apiKeyFromHeader = r.URL.Query().Get("api_key")
 		}
 
-		if apiKey == "" {
+		if s.apiKey == "" {
 			http.Error(w, "Unauthorized: Invalid API Key configuration", http.StatusInternalServerError)
 			return
 		}
 
-		if apiKeyFromHeader != apiKey {
+		if apiKeyFromHeader != s.apiKey {
 			http.Error(w, "Unauthorized: Invalid API Key", http.StatusUnauthorized)
 			return
 		}

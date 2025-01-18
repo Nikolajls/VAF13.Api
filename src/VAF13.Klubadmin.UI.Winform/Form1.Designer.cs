@@ -28,87 +28,87 @@
         /// </summary>
         private void InitializeComponent()
         {
-            txt_name = new TextBox();
-            dataGridView1 = new DataGridView();
-            progressBar1 = new ProgressBar();
-            btn_search = new Button();
-            btn_Clear = new Button();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            name_Text = new TextBox();
+            members_Datagrid = new DataGridView();
+            search_progressBar = new ProgressBar();
+            search_Button = new Button();
+            searchClear_Button = new Button();
+            ((System.ComponentModel.ISupportInitialize)members_Datagrid).BeginInit();
             SuspendLayout();
             // 
-            // txt_name
+            // name_Text
             // 
-            txt_name.Location = new Point(12, 12);
-            txt_name.Name = "txt_name";
-            txt_name.Size = new Size(643, 23);
-            txt_name.TabIndex = 0;
+            name_Text.Location = new Point(12, 12);
+            name_Text.Name = "name_Text";
+            name_Text.Size = new Size(643, 23);
+            name_Text.TabIndex = 0;
             // 
-            // dataGridView1
+            // members_Datagrid
             // 
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.AllowUserToDeleteRows = false;
-            dataGridView1.AllowUserToOrderColumns = true;
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(16, 63);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(1020, 366);
-            dataGridView1.TabIndex = 2;
-            dataGridView1.CellClick += dataGridViewSoftware_CellClick;
+            members_Datagrid.AllowUserToAddRows = false;
+            members_Datagrid.AllowUserToDeleteRows = false;
+            members_Datagrid.AllowUserToOrderColumns = true;
+            members_Datagrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            members_Datagrid.Location = new Point(16, 63);
+            members_Datagrid.Name = "members_Datagrid";
+            members_Datagrid.Size = new Size(1020, 366);
+            members_Datagrid.TabIndex = 2;
+            members_Datagrid.CellClick += dataGridViewSoftware_CellClick;
             // 
-            // progressBar1
+            // search_progressBar
             // 
-            progressBar1.Location = new Point(666, 12);
-            progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(122, 23);
-            progressBar1.Style = ProgressBarStyle.Marquee;
-            progressBar1.TabIndex = 3;
-            progressBar1.Value = 10;
-            progressBar1.Visible = false;
+            search_progressBar.Location = new Point(666, 12);
+            search_progressBar.Name = "search_progressBar";
+            search_progressBar.Size = new Size(122, 23);
+            search_progressBar.Style = ProgressBarStyle.Marquee;
+            search_progressBar.TabIndex = 3;
+            search_progressBar.Value = 10;
+            search_progressBar.Visible = false;
             // 
-            // btn_search
+            // search_Button
             // 
-            btn_search.Location = new Point(666, 12);
-            btn_search.Name = "btn_search";
-            btn_search.Size = new Size(122, 23);
-            btn_search.TabIndex = 1;
-            btn_search.Text = "Search";
-            btn_search.UseVisualStyleBackColor = true;
-            btn_search.Click += search_Click;
+            search_Button.Location = new Point(666, 12);
+            search_Button.Name = "search_Button";
+            search_Button.Size = new Size(122, 23);
+            search_Button.TabIndex = 1;
+            search_Button.Text = "Search";
+            search_Button.UseVisualStyleBackColor = true;
+            search_Button.Click += SearchButtonClick;
             // 
-            // btn_Clear
+            // searchClear_Button
             // 
-            btn_Clear.Location = new Point(794, 12);
-            btn_Clear.Name = "btn_Clear";
-            btn_Clear.Size = new Size(122, 23);
-            btn_Clear.TabIndex = 4;
-            btn_Clear.Text = "Clear";
-            btn_Clear.UseVisualStyleBackColor = true;
-            btn_Clear.Visible = false;
-            btn_Clear.Click += btn_Clear_Click;
+            searchClear_Button.Location = new Point(794, 12);
+            searchClear_Button.Name = "searchClear_Button";
+            searchClear_Button.Size = new Size(122, 23);
+            searchClear_Button.TabIndex = 4;
+            searchClear_Button.Text = "Clear";
+            searchClear_Button.UseVisualStyleBackColor = true;
+            searchClear_Button.Visible = false;
+            searchClear_Button.Click += SearchClearButtonClick;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1048, 450);
-            Controls.Add(btn_Clear);
-            Controls.Add(progressBar1);
-            Controls.Add(dataGridView1);
-            Controls.Add(btn_search);
-            Controls.Add(txt_name);
+            Controls.Add(searchClear_Button);
+            Controls.Add(search_progressBar);
+            Controls.Add(members_Datagrid);
+            Controls.Add(search_Button);
+            Controls.Add(name_Text);
             Name = "Form1";
             Text = "Form1";
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)members_Datagrid).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private TextBox txt_name;
-        private DataGridView dataGridView1;
-        private ProgressBar progressBar1;
-        private Button btn_search;
-        private Button btn_Clear;
+        private TextBox name_Text;
+        private DataGridView members_Datagrid;
+        private ProgressBar search_progressBar;
+        private Button search_Button;
+        private Button searchClear_Button;
     }
 }
