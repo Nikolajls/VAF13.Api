@@ -38,16 +38,16 @@ Additionally, a Windows Forms C# application is available to interact with the A
 
 ## Configuration
 
-
 Example configuration in a `.env` file:
 ```text
 DfuConfiguration__Username=
 DfuConfiguration__Password=
 ApiConfiguration__ApiKey=
+ApiConfiguration__CorsOrigins=
 ```
 
 The Windows Forms application reads the API key and the API baseUrl from `appsettings.json`
-    
+
 ```json
 {
    "UIConfiguration": {
@@ -133,6 +133,9 @@ DfuConfiguration__Username=
 DfuConfiguration__Password=
 ApiConfiguration__ApiKey=
 ```
+
+Swagger UI can be accesed from localhost:8099 and uses a sample OpenAPI spec file with the defined Docker APIs as services.  
+For working swagger-ui CORS needs to be enabled in the API which happens through the environment variable `ApiConfiguration__CorsOrigins`
 
 ## Usage
 
