@@ -1,11 +1,7 @@
-using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Net.Http.Headers;
-using VAF13.Klubadmin.API.Infrastucture;
+using VAF13.Klubadmin.API.Infrastructure.Extensions;
+using VAF13.Klubadmin.API.Infrastructure.Middleware;
 using VAF13.Klubadmin.Domain.Configurations;
-using VAF13.Klubadmin.Domain.Infrastructure;
-using VAF13.Klubadmin.Domain.Services.Klubadmin;
-using VAF13.Klubadmin.Domain.Services.Klubadmin.Interfaces;
 
 namespace VAF13.Klubadmin.API;
 
@@ -23,80 +19,41 @@ public class Program
     //builder.Host.UseSerilog((context, config) => config.ReadFrom.Configuration(context.Configuration));
 
     var services = builder.Services;
-    ConfigureServices(services, builder.Configuration);
+    var apiConfiguration = ConfigureServices(services, builder.Configuration);
 
     //
     var app = builder.Build();
-    ConfigureApp(app);
+    ConfigureApp(app, apiConfiguration);
 
     app.Run();
   }
 
-  private static void ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
+  private static ApiConfiguration ConfigureServices(IServiceCollection services, ConfigurationManager configuration)
   {
+    var (apiConfiguration, _) = services.AddConfigurationOptions(configuration);
     services.AddControllers();
     services.AddEndpointsApiExplorer();
-    services.AddSwaggerGen(x =>
+    services.AddSwaggerAPIKeyScheme();
+    services.AddKlubAdmin();
+
+    if (apiConfiguration.AddCors)
     {
-      x.AddSecurityDefinition("X-API-KEY", new OpenApiSecurityScheme
-      {
-        Name = "X-API-KEY",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "ApiKeyScheme",
-        In = ParameterLocation.Header,
-        Description = "ApiKey must appear in header"
-      });
-      x.AddSecurityRequirement(new OpenApiSecurityRequirement
+      services.AddCors(options => options.AddDefaultPolicy(
+        policy =>
         {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "X-API-KEY"
-                            },
-                            In = ParameterLocation.Header
-                        },
-                        new string[]{}
-                    }
-        });
-    });
-
-    services.AddOptions();
-    services.Configure<ApiConfiguration>(configuration.GetSection(ApiConfiguration.ConfigurationSectionName));
-    services.Configure<DFUConfiguration>(configuration.GetSection(DFUConfiguration.ConfigurationSectionName));
-
-    //Add authentication
-    services.AddHttpClient<IKlubAdminAuthService, KlubAdminAuthService>(client =>
-    {
-      client.BaseAddress = new Uri("https://klubadmin.dfu.dk/");
-      client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PostmanRuntime", "7.23"));
-    })
-        .ConfigurePrimaryHttpMessageHandler(() =>
-        new HttpClientHandler
-        {
-          UseCookies = false
-        }
-        );
-
-    services.AddSingleton<IKlubAdminMappingService, KlubAdminMappingService>();
-    services.AddTransient<KlubadminAuthHandler>();
-    services.AddHttpClient<IKlubAdminService, KlubAdminService>(client =>
-      {
-        client.BaseAddress = new Uri("https://klubadmin.dfu.dk/");
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("PostmanRuntime", "7.23"));
-      })
-      .AddHttpMessageHandler<KlubadminAuthHandler>()
-      .ConfigurePrimaryHttpMessageHandler(() =>
-        new HttpClientHandler
-        {
-          UseCookies = false
-        }
+          var origins = apiConfiguration.CorsOrigins.Split(',');
+          policy
+            .WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+        })
       );
+    }
+
+    return apiConfiguration;
   }
 
-  private static void ConfigureApp(WebApplication app)
+  private static void ConfigureApp(WebApplication app, ApiConfiguration apiConfiguration)
   {
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -105,10 +62,12 @@ public class Program
       app.UseSwaggerUI();
     }
 
+    if (apiConfiguration.AddCors)
+    {
+      app.UseCors();
+    }
+
     app.UseMiddleware<ApiKeyMiddleware>();
-
-    //app.UseHttpsRedirection();
-
     app.UseAuthorization();
 
     app.MapControllers();

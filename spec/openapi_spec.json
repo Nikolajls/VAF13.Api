@@ -1,0 +1,106 @@
+
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "VAF13.Klubadmin.API",
+    "version": "1.0"
+  },  
+  "servers": [
+    {
+      "description": "Go API Docker",
+      "url": "http://localhost:8085"
+    },
+    {
+      "description": "Dotnet API Docker",
+      "url": "http://localhost:8080"
+    },
+    {
+      "description": "Dotnet API Local",
+      "url": "https://localhost:7287"
+    }
+  ],
+  "paths": {
+    "/api/Member/Person": {
+      "get": {
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "name": "personId",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Member/Search": {
+      "get": {
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/Member/SearchAll": {
+      "get": {
+        "tags": [
+          "Member"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "X-API-KEY": {
+        "type": "apiKey",
+        "description": "ApiKey must appear in header",
+        "name": "X-API-KEY",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "X-API-KEY": [ ]
+    }
+  ]
+}
