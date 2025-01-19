@@ -16,3 +16,13 @@ services:
     env_file: .env
     ports:
       - "8085:8080"
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - 8099:80
+    volumes:
+      - ./spec/:/spec
+    environment:
+      - SWAGGER_JSON=/spec/openapi_spec.json
+      - PORT=80
