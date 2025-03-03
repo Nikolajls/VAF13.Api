@@ -29,7 +29,8 @@ type SearchResultPerson struct {
 }
 
 type SearchResultResponse struct {
-	Name        string `json:"name"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
 	Club        string `json:"club"`
 	DateAdded   string `json:"dateAdded"`
 	DateRemoved string `json:"dateRemoved"`

@@ -19,12 +19,17 @@ type DefaultMappings struct {
 func NewDefaultMappingService() MappingService {
 	return &DefaultMappings{}
 }
+
 func (service *DefaultMappings) ConvertSearchResultToResponse(ptr *SearchResultPerson) (*SearchResultResponse, error) {
 	if ptr == nil {
 		return nil, fmt.Errorf("unable to convert search result to response")
 	}
+
+	nameSplit := strings.Split(ptr.Name, " ")
+
 	mapped := &SearchResultResponse{
-		Name:        ptr.Name,
+		FirstName:   nameSplit[0],
+		LastName:    strings.Join(nameSplit[1:], " "),
 		Club:        ptr.Club,
 		DateAdded:   ptr.DateAdded,
 		DateRemoved: ptr.DateRemoved,

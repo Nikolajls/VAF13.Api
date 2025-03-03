@@ -71,7 +71,7 @@ func Test_Search(t *testing.T) {
 	}
 
 	expectedPersonResult := &SearchResultResponse{
-		Name: searchResultPerson.Name,
+		FirstName: searchResultPerson.Name,
 	}
 
 	mappingMock := &MockMappingService{

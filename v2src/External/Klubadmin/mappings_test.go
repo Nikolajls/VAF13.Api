@@ -112,9 +112,15 @@ func Test_ConvertHtmlPersonToPerson(t *testing.T) {
 
 func TestDefaultMappings_ConvertSearchResultToResponse(t *testing.T) {
 
+	firstName := "FirstName"
+	middleName := "MiddleName"
+	lastName := "LastName"
+	name := fmt.Sprintf("%v %v %v", firstName, middleName, lastName)
+	expectedLastName := fmt.Sprintf("%v %v", middleName, lastName)
+	
 	successPerson := &SearchResultPerson{
 		DTRowClass:  "DTROW",
-		Name:        "Name",
+		Name:        name,
 		Club:        "Club",
 		DateAdded:   "01-01-2000",
 		DateRemoved: "01-02-2000",
@@ -142,7 +148,8 @@ func TestDefaultMappings_ConvertSearchResultToResponse(t *testing.T) {
 				ptr: successPerson,
 			},
 			want: &SearchResultResponse{
-				Name:        successPerson.Name,
+				FirstName:   firstName,
+				LastName:    expectedLastName,
 				Club:        successPerson.Club,
 				DateAdded:   successPerson.DateAdded,
 				DateRemoved: successPerson.DateRemoved,
